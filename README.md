@@ -14,14 +14,15 @@ First, run the development server:
    npm install
 3. ```bash
    npm install node
-4. ```bash 
-npm install --save-dev jest @testing-library/react @testing-library/jest-dom
-5. ```bash
-   npm i
+4. For testing and code coverage:
+5. ```bash 
+   npm install --save-dev jest @testing-library/react @testing-library/jest-dom
 6. ```bash
+   npm i
+7. To run the app:
+   ```bash
     npm run dev
     ```
-
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
