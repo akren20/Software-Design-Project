@@ -14,9 +14,11 @@ First, run the development server:
    npm install
 3. ```bash
    npm install node
-4. ```bash
-   npm i
+4. ```bash 
+npm install --save-dev jest @testing-library/react @testing-library/jest-dom
 5. ```bash
+   npm i
+6. ```bash
     npm run dev
     ```
 
