@@ -14,7 +14,8 @@ First, run the development server:
    npm install
 3. ```bash
    npm install node
-4. npm i
+4. ```bash
+   npm i
 5. ```bash
     npm run dev
     ```
