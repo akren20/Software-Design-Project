@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext"; // Import the useAuth hook
+import NotificationDropdown from "./NotificationDropdown"; // Import NotificationDropdown
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isLoggedIn, logout } = useAuth(); // Get login status and logout function from context
+  const { isLoggedIn, logout } = useAuth(); 
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -48,17 +49,24 @@ const Navbar = () => {
           </Link>
           {isLoggedIn ? ( // Conditionally render items based on login status
             <>
+              <NotificationDropdown /> {/* Include Notification Dropdown */}
               <Link
-                to="/profile" // Profile route
+                to="/profile"
                 className="block mt-4 md:inline-block md:mt-0 text-white mr-4 hover:cursor-pointer"
               >
                 Profile
               </Link>
               <Link
-                to="/dashboard" // Example of a protected route
+                to="/volunteer/history" // Volunteer History route
                 className="block mt-4 md:inline-block md:mt-0 text-white mr-4 hover:cursor-pointer"
               >
-                Dashboard
+                Volunteer History
+              </Link>
+              <Link
+                to="/admin/dashboard" // Admin Dashboard route
+                className="block mt-4 md:inline-block md:mt-0 text-white mr-4 hover:cursor-pointer"
+              >
+                Admin Dashboard
               </Link>
               <button
                 onClick={logout} // Logout button

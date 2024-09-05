@@ -6,7 +6,7 @@ const Signup = () => {
 
   const handleSignup = (e) => {
     e.preventDefault();
-    // Add your signup logic here (e.g., API call)
+    // We need to add signup logic here 
     console.log("Signup submitted:", { email, password });
   };
 

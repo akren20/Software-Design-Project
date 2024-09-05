@@ -8,7 +8,7 @@ const Login = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Your login logic (e.g., API call)
+    // We need to add login logic 
     login(); // Update login status in context
   };
 
