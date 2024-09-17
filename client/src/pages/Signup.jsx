@@ -1,13 +1,15 @@
 import React, { useState } from "react";
-
+import { useAuth } from "../context/AuthContext"; // Import the useAuth hook
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth(); // Get login function from context
 
   const handleSignup = (e) => {
     e.preventDefault();
     // We need to add signup logic here 
     console.log("Signup submitted:", { email, password });
+    login();
   };
 
   return (
