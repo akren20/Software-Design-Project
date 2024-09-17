@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "../index.css";
-import volunteerimg from "../assets/images/volunteers.png";
+import volunteerimg from "../assets-images/volunteers.png";
 
 const HomePage = () => {
   return (
