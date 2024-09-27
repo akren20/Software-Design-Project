@@ -3,14 +3,23 @@ import React, { useState } from "react";
 const skillsOptions = ["Communication", "Leadership", "Technical Writing", "Project Management"]; // Example skills
 const urgencyLevels = ["Low", "Medium", "High", "Critical"]; // Example urgency levels
 
+const stateCityData = {
+  "California": ["Los Angeles", "San Francisco", "San Diego"],
+  "Texas": ["Houston", "Austin", "Dallas"],
+  "New York": ["New York City", "Buffalo", "Rochester"],
+  "Florida": ["Miami", "Orlando", "Tampa"]
+};
+
 const EventManagementForm = () => {
   const [formData, setFormData] = useState({
     eventName: "",
     eventDescription: "",
-    location: "",
+    state: "",
+    city: "",
     requiredSkills: [],
     urgency: "",
     eventDate: "",
+    eventTime: "", // New field for event time
   });
 
   const handleInputChange = (e) => {
@@ -18,6 +27,15 @@ const EventManagementForm = () => {
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
+    }));
+  };
+
+  const handleStateChange = (e) => {
+    const { value } = e.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      state: value,
+      city: "" // Reset city selection when state changes
     }));
   };
 
@@ -35,10 +53,30 @@ const EventManagementForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitted Event Data:", formData); // Replace with API call or further logic
-    alert("Event Created/Updated Successfully!");
+
+    try {
+      const response = await fetch('http://localhost:8080/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Submitted Event Data:", result);
+      alert("Event Created/Updated Successfully!");
+
+    } catch (error) {
+      console.error("Error submitting event:", error);
+      alert("Failed to create/update event.");
+    }
   };
 
   return (
@@ -68,14 +106,40 @@ const EventManagementForm = () => {
           ></textarea>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700">Location</label>
-          <textarea
-            name="location"
-            value={formData.location}
+          <label className="block text-gray-700">State</label>
+          <select
+            name="state"
+            value={formData.state}
+            onChange={handleStateChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded mt-1"
+          >
+            <option value="">Select State</option>
+            {Object.keys(stateCityData).map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">City</label>
+          <select
+            name="city"
+            value={formData.city}
             onChange={handleInputChange}
             required
             className="w-full p-2 border border-gray-300 rounded mt-1"
-          ></textarea>
+            disabled={!formData.state} // Disable until a state is selected
+          >
+            <option value="">Select City</option>
+            {formData.state &&
+              stateCityData[formData.state].map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+          </select>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700">Required Skills</label>
@@ -117,6 +181,17 @@ const EventManagementForm = () => {
             type="date"
             name="eventDate"
             value={formData.eventDate}
+            onChange={handleInputChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded mt-1"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Event Time</label>
+          <input
+            type="time"
+            name="eventTime"
+            value={formData.eventTime}
             onChange={handleInputChange}
             required
             className="w-full p-2 border border-gray-300 rounded mt-1"
