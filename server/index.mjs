@@ -10,6 +10,14 @@ import {
     deleteEventByName
 } from './events.mjs'; // Import the event handlers
 
+import {
+    validateVolunteerHistoryEntry,
+    createOrUpdateVolunteerHistoryEntry,
+    getVolunteerHistory,
+    getVolunteerHistoryByEventName,
+    deleteVolunteerHistoryByEventName
+  } from './volunteerhistory.mjs';
+  
 const app = express();
 
 app.use(bodyParser.json());
@@ -20,6 +28,11 @@ app.post('/events', validateEvent, createOrUpdateEvent);
 app.get('/events', getAllEvents);
 app.get('/events/:eventName', getEventByName);
 app.delete('/events/:eventName', deleteEventByName);
+
+app.post('/volunteer-history', validateVolunteerHistoryEntry, createOrUpdateVolunteerHistoryEntry);
+app.get('/volunteer-history', getVolunteerHistory);
+app.get('/volunteer-history/:eventName', getVolunteerHistoryByEventName);
+app.delete('/volunteer-history/:eventName', deleteVolunteerHistoryByEventName);
 
 // Default route
 app.use((req, res) => {
