@@ -1,34 +1,42 @@
 import React, { useState, useEffect } from "react";
 
-// Mock data for volunteer participation history; replace with actual API calls to fetch data
-const mockVolunteerHistory = [
-  {
-    eventName: "Community Cleanup",
-    eventDescription: "A community event to clean up the neighborhood.",
-    location: "City Park",
-    requiredSkills: ["Leadership", "Teamwork"],
-    urgency: "High",
-    eventDate: "2024-09-15",
-    participationStatus: "Completed", // Possible statuses: "Completed", "Pending", "Cancelled"
-  },
-  {
-    eventName: "Tech Workshop",
-    eventDescription: "A workshop for teaching technical skills to students.",
-    location: "Community Center",
-    requiredSkills: ["Technical Writing", "Communication"],
-    urgency: "Medium",
-    eventDate: "2024-10-01",
-    participationStatus: "Pending",
-  },
-];
-
 const VolunteerHistory = () => {
   const [history, setHistory] = useState([]);
+  const [sortBy, setSortBy] = useState("eventDate");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   useEffect(() => {
-    // Simulate fetching data from a backend service
-    setHistory(mockVolunteerHistory);
+    // Fetch volunteer history data from the backend
+    const fetchVolunteerHistory = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/volunteer-history");
+        if (!response.ok) {
+          throw new Error(`Failed to fetch data: ${response.statusText}`);
+        }
+        const data = await response.json();
+        setHistory(data); // Set the fetched data to the history state
+      } catch (error) {
+        console.error("Error fetching volunteer history:", error);
+      }
+    };
+
+    fetchVolunteerHistory();
   }, []);
+
+  // Sort function
+  const handleSort = (field) => {
+    const order = sortBy === field && sortOrder === "asc" ? "desc" : "asc";
+    setSortBy(field);
+    setSortOrder(order);
+
+    const sortedHistory = [...history].sort((a, b) => {
+      if (a[field] < b[field]) return order === "asc" ? -1 : 1;
+      if (a[field] > b[field]) return order === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setHistory(sortedHistory);
+  };
 
   return (
     <div className="max-w-5xl mx-auto p-8">
@@ -40,8 +48,18 @@ const VolunteerHistory = () => {
             <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Event Description</th>
             <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Location</th>
             <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Required Skills</th>
-            <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Urgency</th>
-            <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Event Date</th>
+            <th
+              className="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+              onClick={() => handleSort("urgency")}
+            >
+              Urgency {sortBy === "urgency" && (sortOrder === "asc" ? "↑" : "↓")}
+            </th>
+            <th
+              className="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+              onClick={() => handleSort("eventDate")}
+            >
+              Event Date {sortBy === "eventDate" && (sortOrder === "asc" ? "↑" : "↓")}
+            </th>
             <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Participation Status</th>
           </tr>
         </thead>
@@ -51,9 +69,7 @@ const VolunteerHistory = () => {
               <td className="py-2 px-4 text-sm">{event.eventName}</td>
               <td className="py-2 px-4 text-sm">{event.eventDescription}</td>
               <td className="py-2 px-4 text-sm">{event.location}</td>
-              <td className="py-2 px-4 text-sm">
-                {event.requiredSkills.join(", ")}
-              </td>
+              <td className="py-2 px-4 text-sm">{event.requiredSkills.join(", ")}</td>
               <td className="py-2 px-4 text-sm">{event.urgency}</td>
               <td className="py-2 px-4 text-sm">{event.eventDate}</td>
               <td className="py-2 px-4 text-sm">{event.participationStatus}</td>
