@@ -34,7 +34,7 @@ npm start
 
 Once the server is running, open (http://localhost:3000) in your browser to see the application.
 
-### 4. Move out of client directory and into the server folder
+### 4. Open another terminal and then move into the server folder
 
 ```bash
 cd server
@@ -46,5 +46,13 @@ npm i
 ```bash
 node index.mjs
 ```
+Both the backend and frontend should be running now.
+You can quit and shut down the server by hitting control + c
 
-Quit and shut down the server by hitting control + c
+### 5. Tests
+If currently running the server, please shut it down before you try and run backend tests
+```bash
+npm run test
+```
+After running this command, you should be able to see all the passing and failing tests in this repository (tests: mocha).
+If you want to end the tests hit control + c

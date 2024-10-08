@@ -4,7 +4,5 @@ import App from "./App";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  //<React.StrictMode>  // Comment this out
   <App />
-  //</React.StrictMode> // Comment this out
 );
