@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import app from '../server.js';
+import app from '../server.mjs';
 
 describe('Notification API', () => {
 
