@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import app from '../index.mjs'; 
+import app from '../server.js'; 
 
 describe('Event Management API', () => {
 
