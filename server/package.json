@@ -2,9 +2,9 @@
   "name": "runtime",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.mjs",
+    "start": "node server.js",
     "test": "mocha --recursive",
     "test:coverage": "nyc mocha --recursive"
   },
