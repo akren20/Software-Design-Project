@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.mjs",
-  "type": "module", // Add this line
+  "type": "module",
   "scripts": {
     "start": "node server.mjs",
     "test": "mocha --recursive",
