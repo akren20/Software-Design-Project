@@ -30,7 +30,7 @@ import {
     validateLogin,
     registerUser,
     loginUser
-  } from './auth.mjs';
+} from './auth.mjs';
 
 const app = express();
 

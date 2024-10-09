@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import users from "../context/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -10,7 +9,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8080/login", { // Change to your actual login route
+      const response = await fetch("http://localhost:8080/login", { // Change to actual login route
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,17 +72,3 @@ const Login = () => {
 };
 
 export default Login;
-
-
-// const Login = () => {
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const { login } = useAuth(); // Get login function from context
-
-//   useEffect(() => {
-//     const handleLogin = (e) => {
-//       e.preventDefault();
-//       // We need to add login logic 
-//       login(); // Update login status in context
-//     };
-//   }, [login]);

@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import app from '../index.mjs';
+import app from '../server.mjs';
 
 describe('Login API', () => {
   it('should log in a user with valid credentials', async () => {
