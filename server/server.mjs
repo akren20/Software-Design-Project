@@ -17,12 +17,20 @@ import {
     getVolunteerHistoryByEventName,
     deleteVolunteerHistoryByEventName
 } from './volunteerhistory.mjs';
+
 import {
     validateNotification,
     getAllNotifications,
     createNotification,
     deleteNotificationById
 } from './notification.mjs';
+
+import {
+    validateRegistration,
+    validateLogin,
+    registerUser,
+    loginUser
+  } from './auth.mjs';
 
 const app = express();
 
@@ -43,6 +51,9 @@ app.delete('/volunteer-history/:eventName', deleteVolunteerHistoryByEventName);
 app.get('/notifications', getAllNotifications);
 app.post('/notifications', validateNotification, createNotification);
 app.delete('/notifications/:id', deleteNotificationById);
+
+app.post('/register', validateRegistration, registerUser);
+app.post('/login', validateLogin, loginUser);
 
 // Default route
 app.use((req, res) => {

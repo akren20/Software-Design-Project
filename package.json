@@ -2,5 +2,12 @@
   "dependencies": {
     "express": "^4.21.0",
     "react-router-dom": "^6.26.1"
+  },
+  "scripts": {
+    "test": "mocha",
+    "test:watch": "nodemon --watch './**/*.mjs' --exec 'npm test'"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
   }
 }
