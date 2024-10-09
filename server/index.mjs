@@ -17,7 +17,12 @@ import {
     getVolunteerHistoryByEventName,
     deleteVolunteerHistoryByEventName
   } from './volunteerhistory.mjs';
-  
+  import {
+    validateNotification,
+    getAllNotifications,
+    createNotification,
+    deleteNotificationById
+  } from './notification.mjs';
 const app = express();
 
 app.use(bodyParser.json());
@@ -33,6 +38,10 @@ app.post('/volunteer-history', validateVolunteerHistoryEntry, createOrUpdateVolu
 app.get('/volunteer-history', getVolunteerHistory);
 app.get('/volunteer-history/:eventName', getVolunteerHistoryByEventName);
 app.delete('/volunteer-history/:eventName', deleteVolunteerHistoryByEventName);
+
+app.get('/notifications', getAllNotifications);
+app.post('/notifications', validateNotification, createNotification);
+app.delete('/notifications/:id', deleteNotificationById);
 
 // Default route
 app.use((req, res) => {
