@@ -1,4 +1,4 @@
-// index.mjs
+// server.js
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -16,13 +16,14 @@ import {
     getVolunteerHistory,
     getVolunteerHistoryByEventName,
     deleteVolunteerHistoryByEventName
-  } from './volunteerhistory.mjs';
-  import {
+} from './volunteerhistory.mjs';
+import {
     validateNotification,
     getAllNotifications,
     createNotification,
     deleteNotificationById
-  } from './notification.mjs';
+} from './notification.mjs';
+
 const app = express();
 
 app.use(bodyParser.json());
