@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { expect } from 'chai';
-import app from '../index.mjs';
+import app from '../server.mjs';
 
 describe('Volunteer History API', () => {
   
