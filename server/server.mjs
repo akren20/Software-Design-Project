@@ -1,4 +1,4 @@
-// index.mjs
+// server.mjs
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -8,7 +8,7 @@ import {
     getAllEvents,
     getEventByName,
     deleteEventByName
-} from './events.mjs';
+} from './events.mjs'; // Import the event handlers
 
 import {
     validateVolunteerHistoryEntry,
@@ -16,7 +16,14 @@ import {
     getVolunteerHistory,
     getVolunteerHistoryByEventName,
     deleteVolunteerHistoryByEventName
-  } from './volunteerhistory.mjs';
+} from './volunteerhistory.mjs';
+
+import {
+    validateNotification,
+    getAllNotifications,
+    createNotification,
+    deleteNotificationById
+} from './notification.mjs';
 
 import {
     validateRegistration,
@@ -24,7 +31,7 @@ import {
     registerUser,
     loginUser
   } from './auth.mjs';
-  
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -40,6 +47,10 @@ app.post('/volunteer-history', validateVolunteerHistoryEntry, createOrUpdateVolu
 app.get('/volunteer-history', getVolunteerHistory);
 app.get('/volunteer-history/:eventName', getVolunteerHistoryByEventName);
 app.delete('/volunteer-history/:eventName', deleteVolunteerHistoryByEventName);
+
+app.get('/notifications', getAllNotifications);
+app.post('/notifications', validateNotification, createNotification);
+app.delete('/notifications/:id', deleteNotificationById);
 
 app.post('/register', validateRegistration, registerUser);
 app.post('/login', validateLogin, loginUser);

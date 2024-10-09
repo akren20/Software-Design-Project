@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from "react";
-;
-// Mock notifications data
-const mockNotifications = [
-  { id: 1, type: "Event Assignment", message: "You have been assigned to the Community Cleanup event." },
-  { id: 2, type: "Reminder", message: "Don't forget to complete your profile." },
-  { id: 3, type: "Update", message: "The Tech Workshop event details have been updated." },
-];
 
 const NotificationDropdown = () => {
   const [notifications, setNotifications] = useState([]);
-  const [isOpen, setIsOpen] = useState(false); // Manage dropdown state
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Simulate fetching notifications from a backend service
-    setNotifications(mockNotifications);
+    // Fetch notifications from the backend
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/notifications");
+        const data = await response.json();
+        setNotifications(data);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
   const toggleDropdown = () => {
@@ -54,3 +57,4 @@ const NotificationDropdown = () => {
 };
 
 export default NotificationDropdown;
+ 

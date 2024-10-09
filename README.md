@@ -44,7 +44,7 @@ npm i
 ### 4. Run the Backend
 
 ```bash
-node index.mjs
+node server.mjs
 ```
 Both the backend and frontend should be running now.
 You can quit and shut down the server by hitting control + c
