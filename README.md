@@ -44,7 +44,7 @@ npm i
 ### 4. Run the Backend
 
 ```bash
-node index.js
+node index.mjs
 ```
 
 Quit and shut down the server by hitting control + c
