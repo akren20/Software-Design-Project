@@ -2,9 +2,10 @@
   "name": "runtime",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "server.mjs",
+  "type": "module", // Add this line
   "scripts": {
-    "start": "node server.js",
+    "start": "node server.mjs",
     "test": "mocha --recursive",
     "test:coverage": "nyc mocha --recursive"
   },
