@@ -1,15 +1,36 @@
 import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext"; // Import the useAuth hook
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth(); // Get login function from context
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // We need to add login logic 
-    login(); // Update login status in context
+    try {
+      const response = await fetch("http://localhost:8080/login", { // Change to actual login route
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+  
+      if (response.ok) {
+        // Handle successful login, e.g., store token, redirect
+        login(); // Update login status in context
+        alert('Login successful');
+      } else {
+        // Handle validation errors or login failure
+        alert(data.errors ? data.errors[0].msg : 'Login failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('This email and password combination is incorrect.');
+    }
   };
 
   return (
@@ -35,6 +56,7 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded mt-1"
               required
+              minLength="6"
             />
           </div>
           <button

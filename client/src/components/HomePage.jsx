@@ -33,7 +33,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* About Us Section */}
+      {/* About Us Section
       <section className="py-20 px-5 bg-gray-100 text-center">
         <h2 className="text-4xl font-bold mb-8">About Us</h2>
         <p className="text-lg max-w-3xl mx-auto mb-8">
@@ -45,7 +45,7 @@ const HomePage = () => {
           passion, we're here to help you get involved and make a lasting
           impact.
         </p>
-      </section>
+      </section> */}
     </div>
   );
 };
