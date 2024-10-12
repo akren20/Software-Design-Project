@@ -32,6 +32,15 @@ import {
     loginUser
 } from './auth.mjs';
 
+import {
+    validateUserProfile,
+    getAllUserProfiles,
+    getUserProfileById,
+    createUserProfile,
+    updateUserProfileById,
+    deleteUserProfileById
+} from './userProfile.mjs';
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -54,6 +63,12 @@ app.delete('/notifications/:id', deleteNotificationById);
 
 app.post('/register', validateRegistration, registerUser);
 app.post('/login', validateLogin, loginUser);
+
+app.get('/user-profiles', getAllUserProfiles); // Get all profiles
+app.get('/user-profiles/:id', getUserProfileById); // Get a profile by ID
+app.post('/user-profiles', validateUserProfile, createUserProfile); // Create a new profile
+app.put('/user-profiles/:id', validateUserProfile, updateUserProfileById); // Update a profile by ID
+app.delete('/user-profiles/:id', deleteUserProfileById); // Delete a profile by ID
 
 // Default route
 app.use((req, res) => {

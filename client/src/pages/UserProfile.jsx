@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const states = [
   { code: "AL", name: "Alabama" },
@@ -61,8 +61,9 @@ const skills = [
   "Project Management",
 ]; // Example skills
 
-const UserProfile = () => {
+const UserProfile = (props) => {
   const [formData, setFormData] = useState({
+    id: props.id || "",
     fullName: "",
     address1: "",
     address2: "",
@@ -75,6 +76,14 @@ const UserProfile = () => {
   });
 
   const [availabilityDates, setAvailabilityDates] = useState([]);
+
+  // Load saved profile from localStorage when the component mounts
+  useEffect(() => {
+    const savedProfile = localStorage.getItem("userProfile");
+    if (savedProfile) {
+      setFormData(JSON.parse(savedProfile));
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -107,10 +116,10 @@ const UserProfile = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Submitted Profile Data:", formData); // Replace with API call or further logic
+    // Save the form data to localStorage
+    localStorage.setItem("userProfile", JSON.stringify(formData));
     alert("Profile Updated Successfully!");
   };
-
   return (
     <div className="max-w-lg mx-auto p-8">
       <h1 className="text-2xl font-bold mb-6">Complete Your Profile</h1>
