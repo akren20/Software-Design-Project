@@ -11,8 +11,8 @@ import AuthProvider from "./context/AuthContext";
 
 const App = () => {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Navbar />
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -22,8 +22,8 @@ const App = () => {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/volunteer/history" element={<VolunteerHistory />} /> {/* Volunteer History route */}
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 };
 

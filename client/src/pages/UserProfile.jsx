@@ -62,8 +62,9 @@ const skills = [
 ]; // Example skills
 
 const UserProfile = (props) => {
+  const email = props.email; // The email should be passed as a prop when the user logs in
+
   const [formData, setFormData] = useState({
-    id: props.id || "",
     fullName: "",
     address1: "",
     address2: "",
@@ -79,11 +80,11 @@ const UserProfile = (props) => {
 
   // Load saved profile from localStorage when the component mounts
   useEffect(() => {
-    const savedProfile = localStorage.getItem("userProfile");
+    const savedProfile = localStorage.getItem(`userProfile-${email}`);
     if (savedProfile) {
       setFormData(JSON.parse(savedProfile));
     }
-  }, []);
+  }, [email]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -116,10 +117,17 @@ const UserProfile = (props) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Save the form data to localStorage
-    localStorage.setItem("userProfile", JSON.stringify(formData));
+    // Save the form data to localStorage using the user's email as the key
+    localStorage.setItem(`userProfile-${email}`, JSON.stringify(formData));
     alert("Profile Updated Successfully!");
   };
+
+  // Function to handle logging out (clearing local storage)
+  // const handleLogout = () => {
+  //   localStorage.removeItem(`userProfile-${email}`);
+  //   alert("Logged out and cleared local storage!");
+  // };
+
   return (
     <div className="max-w-lg mx-auto p-8">
       <h1 className="text-2xl font-bold mb-6">Complete Your Profile</h1>
