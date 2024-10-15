@@ -125,6 +125,17 @@ let userProfiles = [
   ];  
 
 // Validation rules for user profile
+export const validateUserProfile = [
+  check('fullName').isString().isLength({ min: 1, max: 50 }).withMessage('Full name must be between 1 and 50 characters.'),
+  check('address1').isString().isLength({ max: 100 }).withMessage('Address1 must not exceed 100 characters.'),
+  check('city').isString().isLength({ max: 50 }).withMessage('City must not exceed 50 characters.'),
+  check('state').isString().isLength({ min: 2, max: 2 }).withMessage('State must be exactly 2 characters.'),
+  check('zipCode').isPostalCode('US').withMessage('Invalid ZIP code format.'),
+  check('skills').isArray().withMessage('Skills must be an array of strings.'),
+  check('preferences').isString().optional().withMessage('Preferences must be a string.'),
+  check('availability').isArray().withMessage('Availability must be an array of dates.'),
+];
+
 // Get all user profiles
 export const getAllUserProfiles = (req, res) => {
   res.status(200).json(userProfiles);
