@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 
 // Create a Context for authentication
 const AuthContext = createContext();
@@ -8,14 +9,16 @@ export const useAuth = () => useContext(AuthContext);
 
 const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Manage login state
+  const navigate = useNavigate();
 
   const login = () => {
     setIsLoggedIn(true); // Logic to log in (e.g., API call can go here)
   };
 
   const logout = () => {
-    setIsLoggedIn(false); // Logic to log out
-  };
+    localStorage.clear();
+    setIsLoggedIn(false);
+    navigate('/login'); };
 
   return (
     <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
