@@ -64,11 +64,21 @@ app.delete('/notifications/:id', deleteNotificationById);
 app.post('/register', validateRegistration, registerUser);
 app.post('/login', validateLogin, loginUser);
 
-app.get('/user-profiles', getAllUserProfiles); // Get all profiles
-app.get('/profile/:id', getUserProfileByEmail); // Get a profile by email
+app.get('/profiles', getAllUserProfiles); // Get all profiles
+app.get('/profile/:email', getUserProfileByEmail); // Get profile by email
 app.post('/profile', validateUserProfile, createUserProfile); // Create a new profile
-app.put('/profile/:id', validateUserProfile, updateUserProfileByEmail); // Update a profile by ID
-app.delete('/profile/:id', deleteUserProfileByEmail); // Delete a profile by ID
+app.post('/profile/:email', validateUserProfile, updateUserProfileByEmail); // Update a profile by email
+app.delete('/profile/:email', deleteUserProfileByEmail); // Delete a profile by email
+app.get('/profile', (req, res) => {
+    const userEmail = req.user.email;
+    const profile = getUserProfileByEmail(userEmail);
+    
+    if (profile) {
+      res.json(profile);
+    } else {
+      res.status(404).json({ message: 'Profile not found' });
+    }
+  });
 
 // Default route
 app.use((req, res) => {

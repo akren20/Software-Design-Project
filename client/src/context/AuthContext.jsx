@@ -16,7 +16,8 @@ const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.clear();
+    localStorage.removeItem("loggedInUser");
+    //localStorage.clear();
     setIsLoggedIn(false);
     navigate('/login'); };
 

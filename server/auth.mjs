@@ -1,4 +1,5 @@
 import { check, validationResult } from 'express-validator';
+//import UserProfile from '../client/src/pages/UserProfile';
 
 const users = [
     { email: 'arenaud@uh.edu', password: 'arenaud' },
@@ -52,5 +53,5 @@ export const loginUser = (req, res) => {
   }
 
   // Simulate generating a token (JWT, etc.)
-  res.json({ token: 'fake-jwt-token', msg: 'Login successful' });
+  res.json({ token: 'fake-jwt-token', msg: 'Login successful'});
 };

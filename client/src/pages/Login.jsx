@@ -1,15 +1,16 @@
-import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import React, { useState, useNavigate } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const { login } = useAuth(); // Get login function from context
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login } = useAuth();
+  //onst navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8080/login", { // Change to actual login route
+      const response = await fetch('http://localhost:8080/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -18,18 +19,20 @@ const Login = () => {
       });
 
       const data = await response.json();
-  
+
       if (response.ok) {
-        // Handle successful login, e.g., store token, redirect
-        login(); // Update login status in context
+        login(data); // Call login from AuthContext with user data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('email', data.email);
+        //navigate(`/profile?email=${encodeURIComponent(email)}`);
+
         alert('Login successful');
       } else {
-        // Handle validation errors or login failure
-        alert(data.errors ? data.errors[0].msg : 'Login failed. Please try again.');
+        alert('Login failed. ' + data.message);
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('This email and password combination is incorrect.');
+      alert('Error logging in. Please try again.');
     }
   };
 
