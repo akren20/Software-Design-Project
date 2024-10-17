@@ -1,4 +1,4 @@
-import React, { useState, useNavigate } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {

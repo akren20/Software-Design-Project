@@ -107,7 +107,7 @@ const UserProfile = () => {
           console.log("Profile data fetched successfully:", data);
         } else {
           setError("Failed to fetch profile data.");
-          console.log(error);
+          //console.log(error);
           console.error("Error fetching profile:", response.statusText);
         }
       } catch (err) {
