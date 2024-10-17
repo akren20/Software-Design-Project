@@ -23,7 +23,8 @@ const Login = () => {
       if (response.ok) {
         login(data); // Call login from AuthContext with user data
         localStorage.setItem('token', data.token);
-        localStorage.setItem('email', data.email);
+        localStorage.setItem('email', email);
+        console.log(localStorage);
         //navigate(`/profile?email=${encodeURIComponent(email)}`);
 
         alert('Login successful');

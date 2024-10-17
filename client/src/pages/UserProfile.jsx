@@ -84,6 +84,7 @@ const UserProfile = () => {
     const fetchProfileData = async () => {
       const token = localStorage.getItem("token");
       const email = localStorage.getItem("email");
+      console.log(email);
 
       if (!token || !email) {
         setError("User is not logged in.");
@@ -91,15 +92,15 @@ const UserProfile = () => {
       }
 
       try {
-        console.log(`Fetching profile for email: ${email["email"]}`);
-        const response = await fetch(`http://localhost:8080/profile/arenaud@uh.edu`, {
+        console.log(`Fetching profile for email: ${email}`);
+        const response = await fetch(`http://localhost:8080/profile/${email}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log(email);
+        //console.log(email);
         if (response.ok) {
           const data = await response.json();
           setFormData(data);
@@ -160,7 +161,7 @@ const UserProfile = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/profile/arenaud@uh.edu`, {
+      const response = await fetch(`http://localhost:8080/profile/${email}`, {
         //const response = await fetch(`http://localhost:8080/profile?email=${encodeURIComponent(email)}`, { // Add email as query param
         method: "POST",
         headers: {
@@ -203,7 +204,7 @@ const UserProfile = () => {
             onChange={handleInputChange}
             required
             className="w-full p-2 border border-gray-300 rounded mt-1"
-            //disabled
+            disabled
           />
         </div>
         <div className="mb-4">
