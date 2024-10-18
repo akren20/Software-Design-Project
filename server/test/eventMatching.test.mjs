@@ -37,11 +37,24 @@ describe('Matching API', () => {
 
   describe('GET /api/volunteers/:eventName', () => {
     it('should return matched volunteers for an event', async () => {
-      const testEvent = 'Test Event';
-      console.log('Testing with event:', testEvent);
-      
+      // First, create a test event
+      const testEvent = {
+        eventName: 'Test Event for Matching',
+        eventDescription: 'This is a test event for matching volunteers',
+        state: 'California',
+        city: 'San Francisco',
+        requiredSkills: ['Leadership', 'Communication'],
+        urgency: 'High',
+        eventDate: '2025-10-18',
+        eventTime: '14:00',
+      };
+
+      await request(app)
+        .post('/events')
+        .send(testEvent);
+
       const response = await request(app)
-        .get(`/api/volunteers/${encodeURIComponent(testEvent)}`)
+        .get(`/api/volunteers/${encodeURIComponent(testEvent.eventName)}`)
         .expect(200);
 
       console.log('Response body:', response.body);
@@ -54,7 +67,7 @@ describe('Matching API', () => {
 
     it('should return 404 if event is not found', async () => {
       const response = await request(app)
-        .get('/api/volunteers/Nonexistent%20Event')
+        .get('/api/volunteers/NonexistentEvent')
         .expect(404);
 
       console.log('Response body:', response.body);

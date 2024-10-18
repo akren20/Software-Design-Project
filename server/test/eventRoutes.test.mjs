@@ -4,6 +4,9 @@ import app from '../server.mjs';
 
 describe('Event Management API', () => {
   it('should create a new event', async () => {
+    const futureDate = new Date();
+    futureDate.setFullYear(futureDate.getFullYear() + 1); // Set date to one year from now
+    
     const newEvent = {
       eventName: 'Test Event',
       eventDescription: 'This is a test event',
@@ -11,16 +14,16 @@ describe('Event Management API', () => {
       city: 'San Francisco',
       requiredSkills: ['Leadership', 'Communication'],
       urgency: 'High',
-      eventDate: '2024-10-10',
+      eventDate: futureDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
       eventTime: '14:00',
     };
-
+  
     const res = await request(app)
       .post('/events')
       .send(newEvent);
-
+  
     console.log('Create event response:', res.body);
-
+  
     expect(res.status).to.equal(201);
     expect(res.body.message).to.equal('Event created successfully');
   });

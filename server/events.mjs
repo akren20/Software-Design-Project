@@ -60,16 +60,27 @@ export const getAllEvents = (req, res) => {
   }
 };
 
-export const getEventByName = (req, res) => {
-    const { eventName } = req.params;
-    const event = events.find(event => event.eventName === eventName);
-    if (event) {
-      return res.status(200).json(event);
+// Update this function to work both as a route handler and a utility function
+export const getEventByName = (reqOrEventName, res) => {
+    let eventName;
+    if (typeof reqOrEventName === 'string') {
+      eventName = reqOrEventName;
     } else {
-      return res.status(404).json({ message: 'Event not found' });
+      eventName = reqOrEventName.params.eventName;
+    }
+  
+    const event = events.find(event => event.eventName === eventName);
+  
+    if (res) {
+      if (event) {
+        return res.status(200).json(event);
+      } else {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+    } else {
+      return event;
     }
   };
-
 export const deleteEventByName = (req, res) => {
     const { eventName } = req.params;
     const eventIndex = events.findIndex(event => event.eventName === eventName);
