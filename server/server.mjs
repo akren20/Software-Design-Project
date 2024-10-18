@@ -47,6 +47,8 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+const JWT_SECRET = 'your_secret_key';
+
 // Route definitions
 app.post('/events', validateEvent, createOrUpdateEvent);
 app.get('/events', getAllEvents);
@@ -66,6 +68,34 @@ app.post('/signup', validateRegistration, registerUser);
 app.post('/login', validateLogin, loginUser);
 app.post('/signup', registerUser);
 
+app.post('/register', (req, res) => {
+    const { email, password } = req.body;
+  
+    // (Add validation and user existence check)
+  
+    const newUser = { email, password }; // Store the new user
+    // (Add logic to save user in a database or memory store)
+  
+    // Generate a JWT token
+    const token = jwt.sign({ email: newUser.email }, JWT_SECRET, { expiresIn: '1h' });
+  
+    // Send the token in response
+    res.status(201).json({ message: 'User registered successfully', token });
+  });
+  
+  // Middleware to authenticate token
+  const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.sendStatus(401);
+  
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+      if (err) return res.sendStatus(403);
+      req.user = user;
+      next();
+    });
+  };
+
 app.get('/users', getAllUsers);
 
 app.get('/profiles', getAllUserProfiles); // Get all profiles
@@ -74,13 +104,36 @@ app.post('/profile', validateUserProfile, createUserProfile); // Create a new pr
 app.post('/profile/:email', validateUserProfile, updateUserProfileByEmail); // Update a profile by email
 app.delete('/profile/:email', deleteUserProfileByEmail); // Delete a profile by email
 app.get('/profile', (req, res) => {
+    if (!req.user || !req.user.email) {
+      return res.status(401).json({ message: 'Unauthorized access. Please log in.' });
+    }
+  
     const userEmail = req.user.email;
     const profile = getUserProfileByEmail(userEmail);
     
     if (profile) {
+      // If the profile exists, return it
       res.json(profile);
     } else {
-      res.status(404).json({ message: 'Profile not found' });
+      // If the profile does not exist, create a new empty profile
+      const newProfile = {
+        email: userEmail,
+        fullName: "",
+        address1: "",
+        address2: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        skills: [],
+        preferences: "",
+        availability: []
+      };
+      
+      // Call createUserProfile to add the new profile
+      createUserProfile(newProfile);
+      
+      // Return the newly created profile
+      res.status(201).json(newProfile);
     }
   });
 

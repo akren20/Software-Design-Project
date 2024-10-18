@@ -9,6 +9,7 @@ export const useAuth = () => useContext(AuthContext);
 
 const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Manage login state
+  const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
 
   const login = () => {
@@ -21,8 +22,12 @@ const AuthProvider = ({ children }) => {
     localStorage.clear();
     navigate('/login'); };
 
+    const updateRole = (role) => {
+      setUserRole(role);
+    };
+
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, login, logout, updateRole, userRole }}>
       {children}
     </AuthContext.Provider>
   );
