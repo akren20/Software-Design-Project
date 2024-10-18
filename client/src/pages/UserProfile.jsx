@@ -185,29 +185,7 @@ const UserProfile = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-center">
-          <svg
-            className="h-12 w-12 text-yellow-500 mx-auto mb-4 animate-bounce"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M12 9v2m0 4h.01m-.01-6a9 9 0 110 18 9 9 0 010-18z"
-            />
-          </svg>
-          <p className="text-yellow-500 text-lg font-semibold">
-            Your profile will be coming soon
-          </p>
-        </div>
-      </div>
-    );
+    return <p>Loading profile...</p>;
   }
 
   if (error) {

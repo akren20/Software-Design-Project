@@ -1,15 +1,49 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext"; // Import the useAuth hook
+import updateRole from "../context/AuthContext.jsx";
+
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth(); // Get login function from context
+  const [error, setError] = useState("");
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    // We need to add signup logic here 
-    console.log("Signup submitted:", { email, password });
-    login();
+  setError(""); // Clear previous error
+
+  console.log("Signup submitted:", { email, password });
+
+  try {
+    const response = await fetch("http://localhost:8080/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("email", email);
+
+      // Update authentication state
+      login();
+      // Optionally update role if you have role data coming from the backend
+      updateRole(data.role || "user"); 
+
+      console.log("Registration successful:", data);
+      window.location.href = "/profile";
+    } else {
+      setError(data.message || "Registration failed. Please try again.");
+      console.error("Error during registration:", data.message);
+    }
+  } catch (error) {
+    setError("An error occurred during registration.");
+    console.error("Error during registration:", error);
+  }
   };
 
   return (
