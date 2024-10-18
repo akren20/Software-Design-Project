@@ -29,7 +29,8 @@ import {
     validateRegistration,
     validateLogin,
     registerUser,
-    loginUser
+    loginUser, 
+    getAllUsers
 } from './auth.mjs';
 
 import {
@@ -61,8 +62,11 @@ app.get('/notifications', getAllNotifications);
 app.post('/notifications', validateNotification, createNotification);
 app.delete('/notifications/:id', deleteNotificationById);
 
-app.post('/register', validateRegistration, registerUser);
+app.post('/signup', validateRegistration, registerUser);
 app.post('/login', validateLogin, loginUser);
+app.post('/signup', registerUser);
+
+app.get('/users', getAllUsers);
 
 app.get('/profiles', getAllUserProfiles); // Get all profiles
 app.get('/profile/:email', getUserProfileByEmail); // Get profile by email
@@ -82,7 +86,7 @@ app.get('/profile', (req, res) => {
 
 // Default route
 app.use((req, res) => {
-    res.status(200).send('Hello, world!');
+    res.status(200).send('Hello, this route is undefined');
 });
 
 // Start the server

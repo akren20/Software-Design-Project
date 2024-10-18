@@ -157,34 +157,39 @@ export const getUserProfileByEmail = (req, res) => {
 
 // Create a new user profile
 export const createUserProfile = (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, fullName, address1, address2, city, state, zipCode, skills, preferences, availability } = req.body;
+
+    // Check if the email already exists
+    const existingProfile = userProfiles.find(p => p.email === email);
+    if (existingProfile) {
+      return res.status(400).json({ message: "Profile with this email already exists" });
+    }
+
+    const newUserProfile = {
+      email,
+      fullName: fullName || "", 
+      address1: address1 || "",
+      address2: address2 || "",
+      city: city || "",
+      state: state || "",
+      zipCode: zipCode || "",
+      skills: skills || [],
+      preferences: preferences || "",
+      availability: availability || [],
+    };
+
+    userProfiles.push(newUserProfile);
+    res.status(201).json({ message: "Profile created successfully", profile: newUserProfile });
+  } catch (error) {
+    console.error("Error creating user profile:", error);
+    res.status(500).json({ message: "An error occurred while creating the profile" });
   }
-
-  const { email, fullName, address1, address2, city, state, zipCode, skills, preferences, availability } = req.body;
-
-  // Check if the email already exists
-  const existingProfile = userProfiles.find(p => p.email === email);
-  if (existingProfile) {
-    return res.status(400).json({ message: "Profile with this email already exists" });
-  }
-
-  const newUserProfile = {
-    email,
-    fullName,
-    address1,
-    address2,
-    city,
-    state,
-    zipCode,
-    skills,
-    preferences,
-    availability,
-  };
-
-  userProfiles.push(newUserProfile);
-  res.status(201).json({ message: "Profile created successfully", profile: newUserProfile });
 };
 
 // Update an existing user profile by email
@@ -206,15 +211,15 @@ export const updateUserProfileByEmail = (req, res) => {
   // Update the profile with the new values
   userProfiles[profileIndex] = {
     ...userProfiles[profileIndex],
-    fullName,
-    address1,
-    address2,
-    city,
-    state,
-    zipCode,
-    skills,
-    preferences,
-    availability,
+    fullName: fullName || userProfiles[profileIndex].fullName,
+    address1: address1 || userProfiles[profileIndex].address1,
+    address2: address2 || userProfiles[profileIndex].address2,
+    city: city || userProfiles[profileIndex].city,
+    state: state || userProfiles[profileIndex].state,
+    zipCode: zipCode || userProfiles[profileIndex].zipCode,
+    skills: skills || userProfiles[profileIndex].skills,
+    preferences: preferences || userProfiles[profileIndex].preferences,
+    availability: availability || userProfiles[profileIndex].availability,
   };
 
   res.status(200).json({ message: "Profile updated successfully", profile: userProfiles[profileIndex] });
@@ -232,3 +237,4 @@ export const deleteUserProfileByEmail = (req, res) => {
   userProfiles.splice(profileIndex, 1);
   res.status(200).json({ message: "Profile deleted successfully" });
 };
+

@@ -29,7 +29,7 @@ const Login = () => {
 
         alert('Login successful');
       } else {
-        alert('Login failed. ' + data.message);
+        alert('Incorrect Email or Password');
       }
     } catch (error) {
       console.error('Login error:', error);
