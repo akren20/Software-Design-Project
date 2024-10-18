@@ -1,7 +1,7 @@
 import { check, validationResult } from 'express-validator';
 
 // Hardcoded user profile data
-let userProfiles = [
+export const userProfiles = [
   {
     email: 'arenaud@uh.edu',
     fullName: "Arianne Renaud",
@@ -26,7 +26,7 @@ let userProfiles = [
     preferences: "In-office work",
     availability: ["2024-09-20", "2024-10-15"],
   },
-    {
+  {
       email: 'bdiaz@uh.edu',
       fullName: "Brendan Diaz",
       address1: "789 Elm St",
@@ -169,6 +169,7 @@ export const getAllUserProfiles = (req, res) => {
 // Get a specific user profile by email
 export const getUserProfileByEmail = (req, res) => {
   const { email } = req.params;
+  
   const profile = userProfiles.find(profile => profile.email === email);
 
   if (!profile) {

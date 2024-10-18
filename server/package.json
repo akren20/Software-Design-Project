@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "nyc mocha --timeout 10000",
-    "test:coverage": "nyc --all --reporter=text mocha --recursive --timeout 10000"
+    "test": "mocha --recursive --extension mjs",
+    "test:coverage": "nyc mocha --recursive --extension mjs"
   },
   "author": "",
   "license": "ISC",

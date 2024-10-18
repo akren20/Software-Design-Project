@@ -26,41 +26,61 @@ export const validateEvent = [
 export const createOrUpdateEvent = (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ errors: errors.array() });
     }
-
+  
     const { eventName, eventDescription, state, city, requiredSkills, urgency, eventDate, eventTime } = req.body;
     const location = `${city}, ${state}`;
     const dateTime = `${eventDate} ${eventTime}`;
-
+  
     const eventIndex = events.findIndex(event => event.eventName === eventName);
-
     if (eventIndex !== -1) {
-        // Update existing event
-        events[eventIndex] = { eventName, eventDescription, location, requiredSkills, urgency, dateTime };
-        return res.status(200).json({ message: 'Event updated successfully', event: events[eventIndex] });
+      // Update existing event
+      events[eventIndex] = { eventName, eventDescription, location, requiredSkills, urgency, dateTime };
+      return res.status(200).json({ message: 'Event updated successfully', event: events[eventIndex] });
     } else {
-        // Create new event
-        const newEvent = { eventName, eventDescription, location, requiredSkills, urgency, dateTime };
-        events.push(newEvent);
-        return res.status(201).json({ message: 'Event created successfully', event: newEvent });
+      // Create new event
+      const newEvent = { eventName, eventDescription, location, requiredSkills, urgency, dateTime };
+      events.push(newEvent);
+      return res.status(201).json({ message: 'Event created successfully', event: newEvent });
     }
+  };
+
+export const getAllEventsData = () => events;
+
+export const getEventByNameData = (eventName) => {
+  return events.find(event => event.eventName === eventName);
 };
 
 export const getAllEvents = (req, res) => {
+  if (res) {
     res.status(200).json(events);
+  } else {
+    return events;
+  }
 };
 
-export const getEventByName = (req, res) => {
-    const { eventName } = req.params;
-    const event = events.find(event => event.eventName === eventName);
-    if (event) {
-        return res.status(200).json(event);
+// Update this function to work both as a route handler and a utility function
+export const getEventByName = (reqOrEventName, res) => {
+    let eventName;
+    if (typeof reqOrEventName === 'string') {
+      eventName = reqOrEventName;
     } else {
-        return res.status(404).json({ message: 'Event not found' });
+      eventName = reqOrEventName.params.eventName;
     }
-};
-
+  
+    const event = events.find(event => event.eventName === eventName);
+  
+    if (res) {
+      if (event) {
+        return res.status(200).json(event);
+      } else {
+        return res.status(404).json({ message: 'Event not found' });
+      }
+    } else {
+      return event;
+    }
+  };
 export const deleteEventByName = (req, res) => {
     const { eventName } = req.params;
     const eventIndex = events.findIndex(event => event.eventName === eventName);
