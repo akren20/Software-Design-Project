@@ -121,6 +121,30 @@ let userProfiles = [
       skills: ["Communication", "Project Management"],
       preferences: "Hybrid work",
       availability: ["2024-10-05", "2024-10-14"],
+    },
+    {
+      email: 'admin@example.edu',
+      fullName: "Admin User",
+      address1: "123 Admin St",
+      address2: "",
+      city: "Admin City",
+      state: "AC",
+      zipCode: "12345",
+      skills: ["Administration", "Leadership"],
+      preferences: "Remote work",
+      availability: ["2024-10-15", "2024-10-25"],
+    },
+    {
+      email: 'volunteer@example.com',
+      fullName: "Volunteer User",
+      address1: "789 Volunteer Rd",
+      address2: "",
+      city: "Volunteer City",
+      state: "VC",
+      zipCode: "67890",
+      skills: ["Volunteering", "Teamwork"],
+      preferences: "On-site work",
+      availability: ["2024-10-10", "2024-10-20"],
     }
   ];  
 
