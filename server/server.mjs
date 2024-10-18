@@ -26,7 +26,8 @@ import {
     validateRegistration,
     validateLogin,
     registerUser,
-    loginUser
+    loginUser, 
+    getAllUsers
 } from './auth.mjs';
 import {
     validateUserProfile,
@@ -42,6 +43,8 @@ import eventMatchingRoutes from './eventMatching.mjs'; // Event matching functio
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
+
+const JWT_SECRET = 'your_secret_key';
 
 // Event management routes
 app.post('/events', validateEvent, createOrUpdateEvent);
@@ -61,23 +64,84 @@ app.post('/notifications', validateNotification, createNotification);
 app.delete('/notifications/:id', deleteNotificationById);
 
 // Authentication routes
-app.post('/register', validateRegistration, registerUser);
+app.post('/signup', validateRegistration, registerUser);
 app.post('/login', validateLogin, loginUser);
+app.post('/signup', registerUser);
 
-// User profile routes
-app.get('/user-profiles', getAllUserProfiles);
-app.get('/profile/:id', getUserProfileByEmail);
-app.post('/profile', validateUserProfile, createUserProfile);
-app.put('/profile/:id', validateUserProfile, updateUserProfileByEmail);
-app.delete('/profile/:id', deleteUserProfileByEmail);
+app.post('/register', (req, res) => {
+    const { email, password } = req.body;
+  
+    // (Add validation and user existence check)
+  
+    const newUser = { email, password }; // Store the new user
+    // (Add logic to save user in a database or memory store)
+  
+    // Generate a JWT token
+    const token = jwt.sign({ email: newUser.email }, JWT_SECRET, { expiresIn: '1h' });
+  
+    // Send the token in response
+    res.status(201).json({ message: 'User registered successfully', token });
+  });
+  
+  // Middleware to authenticate token
+  const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.sendStatus(401);
+  
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+      if (err) return res.sendStatus(403);
+      req.user = user;
+      next();
+    });
+  };
+
+app.get('/users', getAllUsers);
 
 // Event matching routes
 app.use('/api', eventMatchingRoutes); // Changed from '/api/matching' to '/api'
 
+app.get('/profiles', getAllUserProfiles); // Get all profiles
+app.get('/profile/:email', getUserProfileByEmail); // Get profile by email
+app.post('/profile', validateUserProfile, createUserProfile); // Create a new profile
+app.post('/profile/:email', validateUserProfile, updateUserProfileByEmail); // Update a profile by email
+app.delete('/profile/:email', deleteUserProfileByEmail); // Delete a profile by email
+app.get('/profile', (req, res) => {
+    if (!req.user || !req.user.email) {
+      return res.status(401).json({ message: 'Unauthorized access. Please log in.' });
+    }
+  
+    const userEmail = req.user.email;
+    const profile = getUserProfileByEmail(userEmail);
+    
+    if (profile) {
+      // If the profile exists, return it
+      res.json(profile);
+    } else {
+      // If the profile does not exist, create a new empty profile
+      const newProfile = {
+        email: userEmail,
+        fullName: "",
+        address1: "",
+        address2: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        skills: [],
+        preferences: "",
+        availability: []
+      };
+      
+      //to add  new profile
+      createUserProfile(newProfile);
+      
+      res.status(201).json(newProfile);
+    }
+  });
 
 // Default route
 app.use((req, res) => {
-    res.status(200).send('Hello, world!');
+    res.status(200).send('Hello, this route is undefined');
 });
 
 // Start the server

@@ -1,4 +1,5 @@
 import { check, validationResult } from 'express-validator';
+import { createUserProfile } from './userProfile.mjs';
 
 const users = [
     { email: 'arenaud@uh.edu', password: 'arenaud' },
@@ -9,9 +10,13 @@ const users = [
     { email: 'volunteer@example.com', password: 'volunteer2024' }
 ];
 
+export const getAllUsers = (req, res) => {
+  res.status(200).json(users);
+};
+
 export const validateRegistration = [
-  check('email', 'Please include a valid email').isEmail(),
-  check('password', 'Password must be 6 or more characters').isLength({ min: 6 })
+  check('email').isEmail().withMessage('Please include a valid email'),
+  check('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
 ];
 
 // Middleware for validating login data
@@ -29,10 +34,29 @@ export const registerUser = (req, res) => {
 
   const { email, password } = req.body;
 
-  // Simulate registering a new user (we would save to DB here)
-  users.push({ email, password });
+  const existingUser = users.find(user => user.email === email);
+    if (existingUser) {
+        return res.status(400).json({ message: 'User already exists' });
+    }
 
-  res.json({ msg: 'User registered successfully' });
+    // Add the new user
+    users.push({ email, password });
+
+    const emptyProfile = {
+      email: email,
+      fullName: "",
+      address1: "",
+      address2: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      skills: [],
+      preferences: "",
+      availability: []
+  };
+  createUserProfile({ body: emptyProfile }, res);
+
+  res.status(201).json({ message: 'User registered successfully' });
 };
 
 // Function to handle user login
@@ -52,5 +76,5 @@ export const loginUser = (req, res) => {
   }
 
   // Simulate generating a token (JWT, etc.)
-  res.json({ token: 'fake-jwt-token', msg: 'Login successful' });
+  res.json({ token: 'fake-jwt-token', msg: 'Login successful'});
 };
