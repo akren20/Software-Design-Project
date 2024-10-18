@@ -25,6 +25,7 @@ const Signup = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded mt-1"
               required
+              minLength= "6"
             />
           </div>
           <div className="mb-6">

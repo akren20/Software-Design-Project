@@ -4,8 +4,8 @@ import { check, validationResult } from 'express-validator';
 let userProfiles = [
   {
     email: 'arenaud@uh.edu',
-    fullName: "Arianne R",
-    address1: "123 Main St",
+    fullName: "Arianne Renaud",
+    address1: "12345 Main St",
     address2: "Apt 4B",
     city: "Houston",
     state: "TX",
@@ -16,7 +16,7 @@ let userProfiles = [
   },
   {
     email: 'aalmasri@uh.edu',
-    fullName: "Andrew A",
+    fullName: "Andrew Almasri",
     address1: "456 Oak Ave",
     address2: "",
     city: "Dallas",
@@ -126,6 +126,7 @@ let userProfiles = [
 
 // Validation rules for user profile
 export const validateUserProfile = [
+  check('email').isString().isLength({ max: 50 }),
   check('fullName').isString().isLength({ min: 1, max: 50 }).withMessage('Full name must be between 1 and 50 characters.'),
   check('address1').isString().isLength({ max: 100 }).withMessage('Address1 must not exceed 100 characters.'),
   check('city').isString().isLength({ max: 50 }).withMessage('City must not exceed 50 characters.'),
@@ -144,45 +145,51 @@ export const getAllUserProfiles = (req, res) => {
 // Get a specific user profile by email
 export const getUserProfileByEmail = (req, res) => {
   const { email } = req.params;
-  const profile = userProfiles.find(p => p.email === email);  // Removed parseInt
+  const profile = userProfiles.find(profile => profile.email === email);
 
   if (!profile) {
     return res.status(404).json({ message: "Profile not found" });
   }
-
-  res.status(200).json(profile);
+  else {
+    res.status(200).json(profile);
+  }
 };
 
 // Create a new user profile
 export const createUserProfile = (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, fullName, address1, address2, city, state, zipCode, skills, preferences, availability } = req.body;
+
+    // Check if the email already exists
+    const existingProfile = userProfiles.find(p => p.email === email);
+    if (existingProfile) {
+      return res.status(400).json({ message: "Profile with this email already exists" });
+    }
+
+    const newUserProfile = {
+      email,
+      fullName: fullName || "", 
+      address1: address1 || "",
+      address2: address2 || "",
+      city: city || "",
+      state: state || "",
+      zipCode: zipCode || "",
+      skills: skills || [],
+      preferences: preferences || "",
+      availability: availability || [],
+    };
+
+    userProfiles.push(newUserProfile);
+    res.status(201).json({ message: "Profile created successfully", profile: newUserProfile });
+  } catch (error) {
+    console.error("Error creating user profile:", error);
+    res.status(500).json({ message: "An error occurred while creating the profile" });
   }
-
-  const { email, fullName, address1, address2, city, state, zipCode, skills, preferences, availability } = req.body;
-
-  // Check if the email already exists
-  const existingProfile = userProfiles.find(p => p.email === email);
-  if (existingProfile) {
-    return res.status(400).json({ message: "Profile with this email already exists" });
-  }
-
-  const newUserProfile = {
-    email,
-    fullName,
-    address1,
-    address2,
-    city,
-    state,
-    zipCode,
-    skills,
-    preferences,
-    availability,
-  };
-
-  userProfiles.push(newUserProfile);
-  res.status(201).json({ message: "Profile created successfully", profile: newUserProfile });
 };
 
 // Update an existing user profile by email
@@ -204,15 +211,15 @@ export const updateUserProfileByEmail = (req, res) => {
   // Update the profile with the new values
   userProfiles[profileIndex] = {
     ...userProfiles[profileIndex],
-    fullName,
-    address1,
-    address2,
-    city,
-    state,
-    zipCode,
-    skills,
-    preferences,
-    availability,
+    fullName: fullName || userProfiles[profileIndex].fullName,
+    address1: address1 || userProfiles[profileIndex].address1,
+    address2: address2 || userProfiles[profileIndex].address2,
+    city: city || userProfiles[profileIndex].city,
+    state: state || userProfiles[profileIndex].state,
+    zipCode: zipCode || userProfiles[profileIndex].zipCode,
+    skills: skills || userProfiles[profileIndex].skills,
+    preferences: preferences || userProfiles[profileIndex].preferences,
+    availability: availability || userProfiles[profileIndex].availability,
   };
 
   res.status(200).json({ message: "Profile updated successfully", profile: userProfiles[profileIndex] });
@@ -230,3 +237,4 @@ export const deleteUserProfileByEmail = (req, res) => {
   userProfiles.splice(profileIndex, 1);
   res.status(200).json({ message: "Profile deleted successfully" });
 };
+

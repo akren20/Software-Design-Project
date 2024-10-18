@@ -61,10 +61,9 @@ const skills = [
   "Project Management",
 ]; // Example skills
 
-const UserProfile = (props) => {
-  const email = props.email; // The email should be passed as a prop when the user logs in
-
+const UserProfile = () => {
   const [formData, setFormData] = useState({
+    email: "",
     fullName: "",
     address1: "",
     address2: "",
@@ -77,14 +76,50 @@ const UserProfile = (props) => {
   });
 
   const [availabilityDates, setAvailabilityDates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Load saved profile from localStorage when the component mounts
+  // Fetch user profile data on component mount
   useEffect(() => {
-    const savedProfile = localStorage.getItem(`userProfile-${email}`);
-    if (savedProfile) {
-      setFormData(JSON.parse(savedProfile));
-    }
-  }, [email]);
+    const fetchProfileData = async () => {
+      const token = localStorage.getItem("token");
+      const email = localStorage.getItem("email");
+      console.log(email);
+
+      if (!token || !email) {
+        setError("User is not logged in.");
+        return;
+      }
+
+      try {
+        console.log(`Fetching profile for email: ${email}`);
+        const response = await fetch(`http://localhost:8080/profile/${email}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        //console.log(email);
+        if (response.ok) {
+          const data = await response.json();
+          setFormData(data);
+          console.log("Profile data fetched successfully:", data);
+        } else {
+          setError("Failed to fetch profile data.");
+          //console.log(error);
+          console.error("Error fetching profile:", response.statusText);
+        }
+      } catch (err) {
+        setError("An error occurred while fetching profile data.");
+        console.error("Fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -115,23 +150,63 @@ const UserProfile = (props) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Save the form data to localStorage using the user's email as the key
-    localStorage.setItem(`userProfile-${email}`, JSON.stringify(formData));
-    alert("Profile Updated Successfully!");
+    const token = localStorage.getItem("token");
+    const email = localStorage.getItem("email");
+
+    if (!token || !email) {
+      setError("User is not logged in.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/profile/${email}`, {
+        //const response = await fetch(`http://localhost:8080/profile?email=${encodeURIComponent(email)}`, { // Add email as query param
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert("Profile Updated Successfully!");
+        console.log(formData);
+      } else {
+        setError("Failed to update profile.");
+        console.error("Error updating profile:", response.statusText);
+      }
+    } catch (err) {
+      setError("An error occurred while updating profile.");
+      console.error("Update error:", err);
+    }
   };
 
-  // Function to handle logging out (clearing local storage)
-  // const handleLogout = () => {
-  //   localStorage.removeItem(`userProfile-${email}`);
-  //   alert("Logged out and cleared local storage!");
-  // };
+  if (loading) {
+    return <p>Loading profile...</p>;
+  }
 
+  if (error) {
+    return <p>{error}</p>;
+  }
   return (
     <div className="max-w-lg mx-auto p-8">
       <h1 className="text-2xl font-bold mb-6">Complete Your Profile</h1>
       <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label className="block text-gray-700">Email</label> {/* Add Email Input */}
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded mt-1"
+            disabled
+          />
+        </div>
         <div className="mb-4">
           <label className="block text-gray-700">Full Name</label>
           <input
