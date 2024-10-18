@@ -6,35 +6,36 @@ const router = express.Router();
 
 // Helper function to calculate matching score
 export function calculateMatchingScore(volunteer, event) {
-    let score = 0;
-    
-    // Match skills
-    const matchedSkills = volunteer.skills.filter(skill => event.requiredSkills.includes(skill));
-    score += matchedSkills.length * 2; // Each matched skill adds 2 points
-
-    // Match availability
-    const eventDateTime = new Date(event.dateTime);
-    const availableDates = volunteer.availability.map(date => new Date(date));
-    if (availableDates.some(date => date.toDateString() === eventDateTime.toDateString())) {
-        score += 3; // Available on the event date adds 3 points
-    }
-
-    // Match preferences (assuming event has a workType property, adjust if needed)
-    const workType = event.location.toLowerCase() === 'remote' ? 'remote' : 'in-person';
-    if (volunteer.preferences.toLowerCase().includes(workType)) {
-        score += 2; // Matching work type preference adds 2 points
-    }
-
-    // Match location
-    const [eventCity, eventState] = event.location.split(', ');
-    if (volunteer.city.toLowerCase() === eventCity.toLowerCase() && volunteer.state.toLowerCase() === eventState.toLowerCase()) {
-        score += 2; // Same city and state adds 2 points
-    }
-
-    // Match urgency (assuming urgency is a numeric value, adjust if needed)
-    score += event.urgency; // Add urgency value to score
-
-    return score;
+  let score = 0;
+  
+  // Match skills
+  const matchedSkills = volunteer.skills.filter(skill => event.requiredSkills.includes(skill));
+  score += matchedSkills.length * 2; // Each matched skill adds 2 points
+  
+  // Match availability
+  const eventDateTime = new Date(event.dateTime);
+  const availableDates = volunteer.availability.map(date => new Date(date));
+  if (availableDates.some(date => date.toDateString() === eventDateTime.toDateString())) {
+    score += 3; // Available on the event date adds 3 points
+  }
+  
+  // Match preferences (assuming event has a workType property, adjust if needed)
+  const workType = event.location.toLowerCase() === 'remote' ? 'remote' : 'in-person';
+  if (volunteer.preferences.toLowerCase().includes(workType)) {
+    score += 2; // Matching work type preference adds 2 points
+  }
+  
+  // Match location
+  const [eventCity, eventState] = event.location.split(', ');
+  if (volunteer.city.toLowerCase() === eventCity.toLowerCase() && volunteer.state.toLowerCase() === eventState.toLowerCase()) {
+    score += 2; // Same city and state adds 2 points
+  }
+  
+  // Match urgency (convert urgency to numeric value)
+  const urgencyScores = { 'Low': 1, 'Medium': 2, 'High': 3, 'Critical': 4 };
+  score += urgencyScores[event.urgency] || 0;
+  
+  return score;
 }
 router.get('/matches/:email', (req, res) => {
     console.log('GET /matches/:email called');
