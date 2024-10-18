@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "mocha --recursive",
-    "test:coverage": "nyc mocha --recursive"
+    "test": "mocha --recursive --extension mjs",
+    "test:coverage": "nyc mocha --recursive --extension mjs"
   },
   "author": "",
   "license": "ISC",
