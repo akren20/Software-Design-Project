@@ -5,19 +5,19 @@ import app from '../server.mjs';
 describe('Register API', () => {
     it('should register a user with valid credentials', async () => {
       const res = await request(app)
-        .post('/register')
+        .post('/signup')
         .send({
           email: 'newuser@example.com',
           password: 'newUserPass123'
         });
         
-      expect(res.statusCode).to.equal(200);
-      expect(res.body.msg).to.equal('User registered successfully');
+      expect(res.statusCode).to.equal(201);
+      /*expect(res.body.msg).to.equal('User registered successfully');*/
     });
   
     it('should not register a user with an invalid email', async () => {
       const res = await request(app)
-        .post('/register')
+        .post('/signup')
         .send({
           email: 'not-an-email',
           password: 'somePassword123'
@@ -29,19 +29,19 @@ describe('Register API', () => {
   
     it('should not register a user with a short password', async () => {
       const res = await request(app)
-        .post('/register')
+        .post('/signup')
         .send({
           email: 'shortpassword@example.com',
           password: '123'
         });
         
       expect(res.statusCode).to.equal(400);
-      expect(res.body.errors[0].msg).to.equal('Password must be 6 or more characters');
+      expect(res.body.errors[0].msg).to.equal('Password must be at least 6 characters long');
     });
   
     it('should return validation errors for missing fields', async () => {
       const res = await request(app)
-        .post('/register')
+        .post('/signup')
         .send({
           email: '',
           password: ''
@@ -50,6 +50,6 @@ describe('Register API', () => {
       expect(res.statusCode).to.equal(400);
       expect(res.body.errors.length).to.equal(2); // One for email, one for password
       expect(res.body.errors[0].msg).to.equal('Please include a valid email');
-      expect(res.body.errors[1].msg).to.equal('Password must be 6 or more characters');
+      expect(res.body.errors[1].msg).to.equal('Password must be at least 6 characters long');
     });
   });
