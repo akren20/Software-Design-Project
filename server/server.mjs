@@ -53,11 +53,22 @@ app.get('/events/:eventName', getEventByName);
 app.delete('/events/:eventName', deleteEventByName);
 
 // Volunteer history routes
-app.post('/volunteer-history', validateVolunteerHistoryEntry, createOrUpdateVolunteerHistoryEntry);
-app.get('/volunteer-history', getVolunteerHistory);
-app.get('/volunteer-history/:eventName', getVolunteerHistoryByEventName);
-app.delete('/volunteer-history/:eventName', deleteVolunteerHistoryByEventName);
-
+app.post('/volunteer-history', validateVolunteerHistoryEntry, (req, res) => {
+  console.log('POST /volunteer-history called');
+  createOrUpdateVolunteerHistoryEntry(req, res);
+});
+app.get('/volunteer-history', (req, res) => {
+  console.log('GET /volunteer-history called');
+  getVolunteerHistory(req, res);
+});
+app.get('/volunteer-history/:eventName', (req, res) => {
+  console.log(`GET /volunteer-history/${req.params.eventName} called`);
+  getVolunteerHistoryByEventName(req, res);
+});
+app.delete('/volunteer-history/:eventName', (req, res) => {
+  console.log(`DELETE /volunteer-history/${req.params.eventName} called`);
+  deleteVolunteerHistoryByEventName(req, res);
+});
 // Notification routes
 app.get('/notifications', getAllNotifications);
 app.post('/notifications', validateNotification, createNotification);
