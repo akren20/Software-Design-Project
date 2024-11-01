@@ -69,7 +69,10 @@ const VolunteerHistory = () => {
               <td className="py-2 px-4 text-sm">{event.eventName}</td>
               <td className="py-2 px-4 text-sm">{event.eventDescription}</td>
               <td className="py-2 px-4 text-sm">{event.location}</td>
-              <td className="py-2 px-4 text-sm">{event.requiredSkills.join(", ")}</td>
+              {/* Handle undefined or non-array requiredSkills */}
+              <td className="py-2 px-4 text-sm">
+                {(event.requiredSkills || []).join(", ")}
+              </td>
               <td className="py-2 px-4 text-sm">{event.urgency}</td>
               <td className="py-2 px-4 text-sm">{event.eventDate}</td>
               <td className="py-2 px-4 text-sm">{event.participationStatus}</td>

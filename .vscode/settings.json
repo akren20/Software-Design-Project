@@ -1,0 +1,31 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "volunteerdb.cjqg0oce21yy.us-east-2.rds.amazonaws.com",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "SoftwareDesignDB",
+            "database": "volunteerdb",
+            "username": "admin",
+            "askForPassword": true
+        },
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "SoftwareDesignDB",
+            "database": "volunteerdb",
+            "username": "volunteerdb.cjqg0oce21yy.us-east-2.rds.amazonaws.com"
+        }
+    ]
+}

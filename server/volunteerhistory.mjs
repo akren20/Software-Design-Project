@@ -1,26 +1,7 @@
 // volunteerHistory.mjs
+// volunteerHistory.mjs
+import { db } from './database/database.mjs';
 import { check, validationResult } from 'express-validator';
-
-let volunteerHistory = [
-  {
-    eventName: "Community Cleanup",
-    eventDescription: "A community event to clean up the neighborhood.",
-    location: "City Park",
-    requiredSkills: ["Leadership", "Teamwork"],
-    urgency: "High",
-    eventDate: "2024-09-15",
-    participationStatus: "Completed",
-  },
-  {
-    eventName: "Tech Workshop",
-    eventDescription: "A workshop for teaching technical skills to students.",
-    location: "Community Center",
-    requiredSkills: ["Technical Writing", "Communication"],
-    urgency: "Medium",
-    eventDate: "2024-10-01",
-    participationStatus: "Pending",
-  },
-];
 
 // Validation rules for volunteer history entries
 export const validateVolunteerHistoryEntry = [
@@ -33,52 +14,73 @@ export const validateVolunteerHistoryEntry = [
   check('participationStatus').isIn(['Completed', 'Pending', 'Cancelled']).withMessage('Status must be one of: Completed, Pending, or Cancelled.')
 ];
 
+// Retrieve all volunteer history entries
+export const getVolunteerHistory = async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM VolunteerHistory');
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving volunteer history entries', error });
+  }
+};
+
+// Retrieve a specific volunteer history entry by event name
+export const getVolunteerHistoryByEventName = async (req, res) => {
+  const { eventName } = req.params;
+  try {
+    const [rows] = await db.query('SELECT * FROM VolunteerHistory WHERE event_name = ?', [eventName]);
+    if (rows.length > 0) {
+      res.status(200).json(rows[0]);
+    } else {
+      res.status(404).json({ message: 'Volunteer history entry not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving volunteer history entry', error });
+  }
+};
+
 // Create or update a volunteer history entry
-export const createOrUpdateVolunteerHistoryEntry = (req, res) => {
+export const createOrUpdateVolunteerHistoryEntry = async (req, res) => {
+  console.log(req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
   const { eventName, eventDescription, location, requiredSkills, urgency, eventDate, participationStatus } = req.body;
-  const eventIndex = volunteerHistory.findIndex(event => event.eventName === eventName);
-
-  if (eventIndex !== -1) {
-    // Update existing entry
-    volunteerHistory[eventIndex] = { eventName, eventDescription, location, requiredSkills, urgency, eventDate, participationStatus };
-    return res.status(200).json({ message: 'Volunteer history entry updated successfully', entry: volunteerHistory[eventIndex] });
-  } else {
-    // Create new entry
-    const newEntry = { eventName, eventDescription, location, requiredSkills, urgency, eventDate, participationStatus };
-    volunteerHistory.push(newEntry);
-    return res.status(201).json({ message: 'Volunteer history entry created successfully', entry: newEntry });
-  }
-};
-
-// Retrieve all volunteer history entries
-export const getVolunteerHistory = (req, res) => {
-  res.status(200).json(volunteerHistory);
-};
-
-// Retrieve a specific volunteer history entry by event name
-export const getVolunteerHistoryByEventName = (req, res) => {
-  const { eventName } = req.params;
-  const event = volunteerHistory.find(event => event.eventName === eventName);
-  if (event) {
-    return res.status(200).json(event);
-  } else {
-    return res.status(404).json({ message: 'Volunteer history entry not found' });
+  try {
+    const [existingEntry] = await db.query('SELECT * FROM VolunteerHistory WHERE event_name = ?', [eventName]);
+    if (existingEntry.length > 0) {
+      // Update the existing entry
+      await db.query(
+        'UPDATE VolunteerHistory SET event_description = ?, location = ?, required_skills = ?, urgency = ?, event_date = ?, participation_status = ? WHERE event_name = ?',
+        [eventDescription, location, JSON.stringify(requiredSkills), urgency, eventDate, participationStatus, eventName]
+      );
+      res.status(200).json({ message: 'Volunteer history entry updated successfully' });
+    } else {
+      // Insert a new entry
+      await db.query(
+        'INSERT INTO VolunteerHistory (email, event_name, event_description, location, required_skills, urgency, event_date, participation_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        ['bdiaz@uh.edu', eventName, eventDescription, location, JSON.stringify(requiredSkills), urgency, eventDate, participationStatus]
+      );
+      res.status(201).json({ message: 'Volunteer history entry created successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating or updating volunteer history entry', error });
   }
 };
 
 // Delete a specific volunteer history entry by event name
-export const deleteVolunteerHistoryByEventName = (req, res) => {
+export const deleteVolunteerHistoryByEventName = async (req, res) => {
   const { eventName } = req.params;
-  const eventIndex = volunteerHistory.findIndex(event => event.eventName === eventName);
-  if (eventIndex !== -1) {
-    volunteerHistory.splice(eventIndex, 1);
-    return res.status(200).json({ message: 'Volunteer history entry deleted successfully' });
-  } else {
-    return res.status(404).json({ message: 'Volunteer history entry not found' });
+  try {
+    const [result] = await db.query('DELETE FROM VolunteerHistory WHERE event_name = ?', [eventName]);
+    if (result.affectedRows > 0) {
+      res.status(200).json({ message: 'Volunteer history entry deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Volunteer history entry not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting volunteer history entry', error });
   }
 };

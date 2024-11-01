@@ -51,7 +51,7 @@ export const registerUser = (req, res) => {
       state: "",
       zipCode: "",
       skills: [],
-      preferences: "",
+      preferences: "", //change to []
       availability: []
   };
   createUserProfile({ body: emptyProfile }, res);
