@@ -1,7 +1,9 @@
 import { check, validationResult } from 'express-validator';
+import db from './server.mjs';
+import mysql from 'mysql';
 
 // Hardcoded user profile data
-export const userProfiles = [
+/*export const userProfiles = [
   {
     email: 'arenaud@uh.edu',
     fullName: "Arianne Renaud",
@@ -146,7 +148,7 @@ export const userProfiles = [
       preferences: "On-site work",
       availability: ["2024-10-10", "2024-10-20"],
     }
-  ];  
+  ];  */
 
 // Validation rules for user profile
 export const validateUserProfile = [
@@ -167,18 +169,29 @@ export const getAllUserProfiles = (req, res) => {
 };
 
 // Get a specific user profile by email
-export const getUserProfileByEmail = (req, res) => {
+export const getUserProfileByEmail = (req, res, db) => {
   const { email } = req.params;
-  
-  const profile = userProfiles.find(profile => profile.email === email);
 
-  if (!profile) {
-    return res.status(404).json({ message: "Profile not found" });
-  }
-  else {
-    res.status(200).json(profile);
-  }
+  // Query the database for the user profile with the provided email
+  const sql = 'SELECT * FROM userProfiles WHERE email = ?';
+  
+  db.query(sql, [email], (err, results) => {
+    if (err) {
+      // If there's an error in the query, send a server error response
+      return res.status(500).json({ message: "Database error", error: err });
+    }
+
+    // Check if any profile was found
+    if (results.length === 0) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    // If found, return the profile (assuming only one profile matches the email)
+    res.status(200).json(results[0]);
+    console.log(res.status(200).json(results[0]));
+  });
 };
+
 
 // Create a new user profile
 export const createUserProfile = (req, res) => {

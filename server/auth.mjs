@@ -1,5 +1,6 @@
 import { check, validationResult } from 'express-validator';
 import { createUserProfile } from './userProfile.mjs';
+import db from "./server.mjs"
 
 const users = [
     { email: 'arenaud@uh.edu', password: 'arenaud' },
@@ -11,7 +12,14 @@ const users = [
 ];
 
 export const getAllUsers = (req, res) => {
-  res.status(200).json(users);
+  const sql = "SELECT * FROM UserCredentials"; // Adjust this to your actual table name
+  
+  db.query(sql, (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database query failed', details: err });
+    }
+    res.status(200).json(data); // Send the database data as JSON
+  });
 };
 
 export const validateRegistration = [

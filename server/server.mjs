@@ -1,5 +1,6 @@
 // server.mjs
 import express from 'express';
+import mysql from 'mysql';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import {
@@ -44,6 +45,23 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+export const db = mysql.createConnection({
+    host: "volunteerdb.cjqg0oce21yy.us-east-2.rds.amazonaws.com",
+    user:"admin",
+    password: "Swdproject2024!",
+    database: "volunteerdb",
+})
+
+db.connect((err) => {
+  if (err) {
+      console.error('Database connection failed:', err);
+      process.exit(1);
+  } else {
+      console.log('Connected to the database');
+  }
+});
+
+
 const JWT_SECRET = 'your_secret_key';
 
 // Event management routes
@@ -68,20 +86,20 @@ app.post('/signup', validateRegistration, registerUser);
 app.post('/login', validateLogin, loginUser);
 app.post('/signup', registerUser);
 
-app.post('/register', (req, res) => {
-    const { email, password } = req.body;
+// app.post('/register', (req, res) => {
+//     const { email, password } = req.body;
   
-    // (Add validation and user existence check)
+//     // (Add validation and user existence check)
   
-    const newUser = { email, password }; // Store the new user
-    // (Add logic to save user in a database or memory store)
+//     const newUser = { email, password }; // Store the new user
+//     // (Add logic to save user in a database or memory store)
   
-    // Generate a JWT token
-    const token = jwt.sign({ email: newUser.email }, JWT_SECRET, { expiresIn: '1h' });
+//     // Generate a JWT token
+//     const token = jwt.sign({ email: newUser.email }, JWT_SECRET, { expiresIn: '1h' });
   
-    // Send the token in response
-    res.status(201).json({ message: 'User registered successfully', token });
-  });
+//     // Send the token in response
+//     res.status(201).json({ message: 'User registered successfully', token });
+//   });
   
   // Middleware to authenticate token
   const authenticateToken = (req, res, next) => {
