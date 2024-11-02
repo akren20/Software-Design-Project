@@ -69,17 +69,29 @@ app.delete('/volunteer-history/:eventName', (req, res) => {
   console.log(`DELETE /volunteer-history/${req.params.eventName} called`);
   deleteVolunteerHistoryByEventName(req, res);
 });
+
 // Notification routes
 app.get('/notifications', getAllNotifications);
 app.post('/notifications', validateNotification, createNotification);
 app.delete('/notifications/:id', deleteNotificationById);
 
 // Authentication routes
-app.post('/signup', validateRegistration, registerUser);
-app.post('/login', validateLogin, loginUser);
-app.post('/signup', registerUser);
+app.post('/signup', validateRegistration, (req, res) => {
+  console.log('POST /signup with validation called');
+  registerUser(req, res);
+});
 
-app.post('/register', (req, res) => {
+app.post('/login', validateLogin, (req, res) => {
+  console.log('POST /login with validation called');
+  loginUser(req, res);
+});
+
+app.post('/signup', (req, res) => {
+  console.log('POST /signup called without validation');
+  registerUser(req, res);
+});
+
+/*app.post('/register', (req, res) => {
     const { email, password } = req.body;
   
     // (Add validation and user existence check)
@@ -92,7 +104,7 @@ app.post('/register', (req, res) => {
   
     // Send the token in response
     res.status(201).json({ message: 'User registered successfully', token });
-  });
+  });*/
   
   // Middleware to authenticate token
   const authenticateToken = (req, res, next) => {
@@ -107,48 +119,116 @@ app.post('/register', (req, res) => {
     });
   };
 
-app.get('/users', getAllUsers);
-
 // Event matching routes
 app.use('/api', eventMatchingRoutes); // Changed from '/api/matching' to '/api'
 
-app.get('/profiles', getAllUserProfiles); // Get all profiles
-app.get('/profile/:email', getUserProfileByEmail); // Get profile by email
-app.post('/profile', validateUserProfile, createUserProfile); // Create a new profile
-app.post('/profile/:email', validateUserProfile, updateUserProfileByEmail); // Update a profile by email
-app.delete('/profile/:email', deleteUserProfileByEmail); // Delete a profile by email
+app.get('/users', (req, res) => {
+  console.log('GET /users called');
+  getAllUsers(req, res);
+});
+
+app.get('/profiles', (req, res) => {
+  console.log('GET /profiles called');
+  getAllUserProfiles(req, res);
+});
+
 app.get('/profile', (req, res) => {
-    if (!req.user || !req.user.email) {
-      return res.status(401).json({ message: 'Unauthorized access. Please log in.' });
-    }
+  console.log('GET /profile called');
+
+  const userEmail = req.query.email; // Get email from query parameters
+
+  if (!userEmail) {
+    console.log('Email is missing in the request.');
+    return res.status(400).json({ message: 'Email parameter is required.' });
+  }
+
+  console.log(`Fetching profile for user email: ${userEmail}`);
+  getUserProfileByEmail(req, res); // Call the function to handle the fetching
+});
+
+
+app.get('/profile/:email', (req, res) => {
+  console.log(`GET /profile/${req.params.email} called`);
+  /*if (!req.user || !req.user.email) {
+    console.log('Unauthorized access attempt to /profile');
+    return res.status(401).json({ message: 'Unauthorized access. Please log in.' });
+  }*/
+
+  const userEmail = req.params.email;
+  console.log(`Fetching profile for user email: ${userEmail}`);
+  const profile = getUserProfileByEmail(userEmail);
   
-    const userEmail = req.user.email;
-    const profile = getUserProfileByEmail(userEmail);
+  if (profile) {
+    console.log(`Profile found for ${userEmail}`);
+    res.json(profile);
+  } else {
+    console.log(`No profile found for ${userEmail}, creating new profile`);
+    const newProfile = {
+      email: userEmail,
+      fullName: "",
+      address1: "",
+      address2: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      skills: [],
+      preferences: "",
+      availability: []
+    };
     
-    if (profile) {
-      // If the profile exists, return it
-      res.json(profile);
-    } else {
-      // If the profile does not exist, create a new empty profile
-      const newProfile = {
-        email: userEmail,
-        fullName: "",
-        address1: "",
-        address2: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        skills: [],
-        preferences: "",
-        availability: []
-      };
-      
-      //to add  new profile
-      createUserProfile(newProfile);
-      
-      res.status(201).json(newProfile);
-    }
-  });
+    createUserProfile({ body: newProfile }, res); // Adjusted to fit the `createUserProfile` function signature
+    res.status(201).json(newProfile);
+  }
+});
+
+app.post('/profile', validateUserProfile, (req, res) => { //create a new users blank profile
+  console.log('POST /profile called');
+  createUserProfile(req, res);
+});
+
+app.post('/profile/:email', validateUserProfile, (req, res) => {
+  console.log(`POST /profile/${req.params.email} called for updating profile`);
+  updateUserProfileByEmail(req, res);
+});
+
+app.delete('/profile/:email', (req, res) => {
+  console.log(`DELETE /profile/${req.params.email} called`);
+  deleteUserProfileByEmail(req, res);
+});
+
+app.get('/profile', (req, res) => {
+  console.log('GET /profile called');
+  if (!req.user || !req.user.email) {
+    console.log('Unauthorized access attempt to /profile');
+    return res.status(401).json({ message: 'Unauthorized access. Please log in.' });
+  }
+
+  const userEmail = req.user.email;
+  console.log(`Fetching profile for user email: ${userEmail}`);
+  const profile = getUserProfileByEmail(userEmail);
+  
+  if (profile) {
+    console.log(`Profile found for ${userEmail}`);
+    res.json(profile);
+  } else {
+    console.log(`No profile found for ${userEmail}, creating new profile`);
+    const newProfile = {
+      email: userEmail,
+      fullName: "",
+      address1: "",
+      address2: "",
+      city: "",
+      state: "",
+      zipCode: "",
+      skills: [],
+      preferences: "",
+      availability: []
+    };
+    
+    createUserProfile({ body: newProfile }, res); // Adjusted to fit the `createUserProfile` function signature
+    res.status(201).json(newProfile);
+  }
+});
 
 // Default route
 app.use((req, res) => {

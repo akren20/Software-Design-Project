@@ -196,7 +196,7 @@ const UserProfile = () => {
       <h1 className="text-2xl font-bold mb-6">Complete Your Profile</h1>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block text-gray-700">Email</label> {/* Add Email Input */}
+          <label className="block text-gray-700">Email</label>
           <input
             type="email"
             name="email"

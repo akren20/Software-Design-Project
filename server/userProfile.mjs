@@ -1,7 +1,7 @@
 import { check, validationResult } from 'express-validator';
 
 // Hardcoded user profile data
-export const userProfiles = [
+/*export const userProfiles = [
   {
     email: 'arenaud@uh.edu',
     fullName: "Arianne Renaud",
@@ -146,7 +146,7 @@ export const userProfiles = [
       preferences: "On-site work",
       availability: ["2024-10-10", "2024-10-20"],
     }
-  ];  
+  ];  */
 
 // Validation rules for user profile
 export const validateUserProfile = [
@@ -162,27 +162,41 @@ export const validateUserProfile = [
 ];
 
 // Get all user profiles
-export const getAllUserProfiles = (req, res) => {
-  res.status(200).json(userProfiles);
+export const getAllUserProfiles = async (req, res) => {
+  try {
+    const [profiles] = await db.query('SELECT * FROM UserProfile');
+    res.status(200).json(profiles);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving this users profile', error });
+  }
 };
 
 // Get a specific user profile by email
-export const getUserProfileByEmail = (req, res) => {
+export const getUserProfileByEmail = async (req, res) => {
   const { email } = req.params;
-  
-  const profile = userProfiles.find(profile => profile.email === email);
 
-  if (!profile) {
-    return res.status(404).json({ message: "Profile not found" });
+  if (!email) {
+    return res.status(400).json({ message: "Email parameter is required." });
   }
-  else {
-    res.status(200).json(profile);
+
+  try {
+    const [rows] = await db.query('SELECT * FROM userProfile WHERE email = ?', [email]);
+    if (rows.length > 0) {
+      res.status(200).json(rows[0]);
+    } else {
+      res.status(404).json({ message: 'Profile not found' });
+    }
+  } catch (error) {
+    // Log the error for debugging
+    console.error('Error retrieving user profile:', error);
+    res.status(500).json({ message: 'Error retrieving user profile', error });
   }
 };
 
 // Create a new user profile
-export const createUserProfile = (req, res) => {
+export const createUserProfile = async (req, res) => {
   try {
+    // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -190,76 +204,101 @@ export const createUserProfile = (req, res) => {
 
     const { email, fullName, address1, address2, city, state, zipCode, skills, preferences, availability } = req.body;
 
-    // Check if the email already exists
-    const existingProfile = userProfiles.find(p => p.email === email);
-    if (existingProfile) {
+    // Check if the email already exists in the database
+    const [existingProfiles] = await db.query('SELECT * FROM userProfile WHERE email = ?', [email]);
+    if (existingProfiles.length > 0) {
       return res.status(400).json({ message: "Profile with this email already exists" });
     }
 
-    const newUserProfile = {
-      email,
-      fullName: fullName || "", 
-      address1: address1 || "",
-      address2: address2 || "",
-      city: city || "",
-      state: state || "",
-      zipCode: zipCode || "",
-      skills: skills || [],
-      preferences: preferences || "",
-      availability: availability || [],
-    };
+    // Insert new user profile into the database
+    const sql = `
+      INSERT INTO userProfiles (email, fullName, address1, address2, city, state, zipCode, skills, preferences, availability)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const skillString = JSON.stringify(skills || []);
+    const availabilityString = JSON.stringify(availability || []);
 
-    userProfiles.push(newUserProfile);
-    res.status(201).json({ message: "Profile created successfully", profile: newUserProfile });
+    await db.query(sql, [
+      email,
+      fullName || "",
+      address1 || "",
+      address2 || "",
+      city || "",
+      state || "",
+      zipCode || "",
+      skillString,
+      preferences || "",
+      availabilityString
+    ]);
+
+    // Send success response
+    res.status(201).json({ message: "Profile created successfully" });
   } catch (error) {
     console.error("Error creating user profile:", error);
-    res.status(500).json({ message: "An error occurred while creating the profile" });
+    res.status(500).json({ message: "An error occurred while creating the profile", error });
   }
 };
 
+
 // Update an existing user profile by email
-export const updateUserProfileByEmail = (req, res) => {
+export const updateUserProfileByEmail = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
   const { email } = req.params;
-  const profileIndex = userProfiles.findIndex(p => p.email === email);
-
-  if (profileIndex === -1) {
-    return res.status(404).json({ message: "Profile not found" });
-  }
-
   const { fullName, address1, address2, city, state, zipCode, skills, preferences, availability } = req.body;
 
-  // Update the profile with the new values
-  userProfiles[profileIndex] = {
-    ...userProfiles[profileIndex],
-    fullName: fullName || userProfiles[profileIndex].fullName,
-    address1: address1 || userProfiles[profileIndex].address1,
-    address2: address2 || userProfiles[profileIndex].address2,
-    city: city || userProfiles[profileIndex].city,
-    state: state || userProfiles[profileIndex].state,
-    zipCode: zipCode || userProfiles[profileIndex].zipCode,
-    skills: skills || userProfiles[profileIndex].skills,
-    preferences: preferences || userProfiles[profileIndex].preferences,
-    availability: availability || userProfiles[profileIndex].availability,
-  };
+  // Query to update the user profile in the database
+  const sql = `
+    UPDATE userProfiles 
+    SET 
+      fullName = COALESCE(?, fullName), 
+      address1 = COALESCE(?, address1), 
+      address2 = COALESCE(?, address2), 
+      city = COALESCE(?, city), 
+      state = COALESCE(?, state), 
+      zipCode = COALESCE(?, zipCode), 
+      skills = COALESCE(?, skills), 
+      preferences = COALESCE(?, preferences), 
+      availability = COALESCE(?, availability) 
+    WHERE email = ?
+  `;
 
-  res.status(200).json({ message: "Profile updated successfully", profile: userProfiles[profileIndex] });
-};
+  const values = [fullName, address1, address2, city, state, zipCode, skills, preferences, availability, email];
 
-// Delete a user profile by email
-export const deleteUserProfileByEmail = (req, res) => {
-  const { email } = req.params;
-  const profileIndex = userProfiles.findIndex(p => p.email === email);
+  try {
+    const [result] = await db.query(sql, values);
 
-  if (profileIndex === -1) {
-    return res.status(404).json({ message: "Profile not found" });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    // Fetch updated profile data to return in the response
+    const [updatedProfile] = await db.query('SELECT * FROM userProfile WHERE email = ?', [email]);
+
+    res.status(200).json({ message: "Profile updated successfully", profile: updatedProfile[0] });
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    res.status(500).json({ message: "An error occurred while updating the profile", error });
   }
-
-  userProfiles.splice(profileIndex, 1);
-  res.status(200).json({ message: "Profile deleted successfully" });
 };
 
+
+export const deleteUserProfileByEmail = async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const [result] = await db.query('DELETE FROM userProfiles WHERE email = ?', [email]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    res.status(200).json({ message: "Profile deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user profile:", error);
+    res.status(500).json({ message: "An error occurred while deleting the profile", error });
+  }
+};

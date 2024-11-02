@@ -11,7 +11,6 @@ const pool = createPool({
 
 export { pool as db };
 
-// Test the database connection
 async function testConnection() {
     try {
         const [rows] = await pool.query('SELECT 1 + 1 AS solution');
@@ -21,5 +20,4 @@ async function testConnection() {
     }
 }
 
-// Run the connection test
 testConnection();
