@@ -1,49 +1,49 @@
 import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext"; // Import the useAuth hook
-import updateRole from "../context/AuthContext.jsx";
+import { useAuth } from "../context/AuthContext"; // Import useAuth to access context functions
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useAuth(); // Get login function from context
+  const { login, updateRole } = useAuth();
   const [error, setError] = useState("");
 
   const handleSignup = async (e) => {
     e.preventDefault();
-  setError(""); // Clear previous error
+    setError(""); // Clear previous error
 
-  console.log("Signup submitted:", { email, password });
+    console.log("Signup submitted:", { email, password });
 
-  try {
-    const response = await fetch("http://localhost:8080/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch("http://localhost:8080/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("email", email);
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("email", email);
 
-      // Update authentication state
-      login();
-      // Optionally update role if you have role data coming from the backend
-      updateRole(data.role || "user"); 
+        // Update authentication state and role if available
+        login();
+        if (updateRole) {
+          updateRole(data.role || "user");
+        }
 
-      console.log("Registration successful:", data);
-      window.location.href = "/profile";
-    } else {
-      setError(data.message || "Registration failed. Please try again.");
-      console.error("Error during registration:", data.message);
+        console.log("Registration successful:", data);
+        window.location.href = "/profile";
+      } else {
+        setError(data.message || "Registration failed. Please try again.");
+        console.error("Error during registration:", data.message);
+      }
+    } catch (error) {
+      setError("An error occurred during registration.");
+      console.error("Error during registration:", error);
     }
-  } catch (error) {
-    setError("An error occurred during registration.");
-    console.error("Error during registration:", error);
-  }
   };
 
   return (
@@ -59,7 +59,7 @@ const Signup = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded mt-1"
               required
-              minLength= "6"
+              minLength="6"
             />
           </div>
           <div className="mb-6">
@@ -72,6 +72,7 @@ const Signup = () => {
               required
             />
           </div>
+          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
           <button
             type="submit"
             className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"

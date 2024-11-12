@@ -64,12 +64,12 @@ const skills = [
 const UserProfile = () => {
   const [formData, setFormData] = useState({
     email: "",
-    fullName: "",
+    full_name: "",
     address1: "",
     address2: "",
     city: "",
-    state: "",
-    zipCode: "",
+    state_code: "",
+    zip_code: "",
     skills: [],
     preferences: "",
     availability: [],
@@ -161,7 +161,7 @@ const UserProfile = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/profile/${email}`, {
+      const response = await fetch(`http://localhost:8080/profile/${encodeURIComponent(email)}`, {
         //const response = await fetch(`http://localhost:8080/profile?email=${encodeURIComponent(email)}`, { // Add email as query param
         method: "POST",
         headers: {
@@ -211,9 +211,9 @@ const UserProfile = () => {
           <label className="block text-gray-700">Full Name</label>
           <input
             type="text"
-            name="fullName"
+            name="full_name"
             maxLength="50"
-            value={formData.fullName}
+            value={formData.full_name}
             onChange={handleInputChange}
             required
             className="w-full p-2 border border-gray-300 rounded mt-1"
@@ -257,8 +257,8 @@ const UserProfile = () => {
         <div className="mb-4">
           <label className="block text-gray-700">State</label>
           <select
-            name="state"
-            value={formData.state}
+            name="state_code"
+            value={formData.state_code}
             onChange={handleInputChange}
             required
             className="w-full p-2 border border-gray-300 rounded mt-1"
@@ -275,9 +275,9 @@ const UserProfile = () => {
           <label className="block text-gray-700">Zip Code</label>
           <input
             type="text"
-            name="zipCode"
+            name="zip_code"
             maxLength="9"
-            value={formData.zipCode}
+            value={formData.zip_code}
             onChange={handleInputChange}
             required
             className="w-full p-2 border border-gray-300 rounded mt-1"
