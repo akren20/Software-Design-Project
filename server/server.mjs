@@ -35,7 +35,8 @@ import {
     getUserProfileByEmail,
     createUserProfile,
     updateUserProfileByEmail,
-    deleteUserProfileByEmail
+    deleteUserProfileByEmail,
+    deleteUserCredentialsByEmail
 } from './userProfile.mjs';
 import eventMatchingRoutes from './eventMatching.mjs'; // Event matching functionality
 
@@ -142,10 +143,12 @@ app.delete('/profile/:email', (req, res) => {
   deleteUserProfileByEmail(req, res);
 });
 
+app.delete('/credentials/:email', deleteUserCredentialsByEmail);
+
 app.get('/profile', (req, res) => {
-    /*if (!req.user || !req.user.email) {
+    if (!req.user || !req.user.email) {
       return res.status(401).json({ message: 'Unauthorized access. Please log in.' });
-    }*/
+    }
   
     const userEmail = req.user.email;
     const profile = getUserProfileByEmail(userEmail);
