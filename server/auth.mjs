@@ -65,6 +65,7 @@ export const registerUser = (req, res) => {
   createUserProfile({ body: emptyProfile }, res);
 
   res.status(201).json({ message: 'User registered successfully' });
+  return;
 };
 
 // Function to handle user login

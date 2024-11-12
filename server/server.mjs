@@ -40,7 +40,6 @@ import {
 } from './userProfile.mjs';
 import eventMatchingRoutes from './eventMatching.mjs'; // Event matching functionality
 
-
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
