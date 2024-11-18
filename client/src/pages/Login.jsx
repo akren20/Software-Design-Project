@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
-  //onst navigate = useNavigate();
+  const navigate = useNavigate(); // Use navigate from React Router
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,9 +26,10 @@ const Login = () => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('email', email);
         console.log(localStorage);
-        //navigate(`/profile?email=${encodeURIComponent(email)}`);
-
         alert('Login successful');
+        
+        // Redirect to the profile page
+        navigate(`/profile?email=${encodeURIComponent(email)}`);
       } else {
         alert('Incorrect Email or Password');
       }

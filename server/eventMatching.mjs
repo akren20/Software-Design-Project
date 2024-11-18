@@ -1,5 +1,5 @@
 import express from 'express';
-import { userProfiles } from './userProfile.mjs';
+//import { userProfiles } from './userProfile.mjs';
 import { getAllEvents, getEventByName } from './events.mjs'; // Import event functions
 
 const router = express.Router();

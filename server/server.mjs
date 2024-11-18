@@ -35,7 +35,8 @@ import {
     getUserProfileByEmail,
     createUserProfile,
     updateUserProfileByEmail,
-    deleteUserProfileByEmail
+    deleteUserProfileByEmail,
+    deleteUserCredentialsByEmail
 } from './userProfile.mjs';
 import eventMatchingRoutes from './eventMatching.mjs'; // Event matching functionality
 
@@ -75,9 +76,20 @@ app.post('/notifications', validateNotification, createNotification);
 app.delete('/notifications/:id', deleteNotificationById);
 
 // Authentication routes
-app.post('/signup', validateRegistration, registerUser);
-app.post('/login', validateLogin, loginUser);
-app.post('/signup', registerUser);
+app.post('/signup', validateRegistration, (req, res) => {
+  console.log('POST /signup with validation called');
+  registerUser(req, res);
+});
+
+app.post('/login', validateLogin, (req, res) => {
+  console.log('POST /login with validation called');
+  loginUser(req, res);
+});
+
+app.post('/signup', (req, res) => {
+  console.log('POST /signup called without validation');
+  registerUser(req, res);
+});
 
 app.post('/register', (req, res) => {
     const { email, password } = req.body;
@@ -112,11 +124,27 @@ app.get('/users', getAllUsers);
 // Event matching routes
 app.use('/api', eventMatchingRoutes); // Changed from '/api/matching' to '/api'
 
-app.get('/profiles', getAllUserProfiles); // Get all profiles
-app.get('/profile/:email', getUserProfileByEmail); // Get profile by email
+app.get('/profiles', (req, res) => {
+  console.log("GET /profiles to retrieve every user profile");
+  getAllUserProfiles(req, res);
+});
+
+app.get('/profile/:email', (req, res) => {
+  console.log(`GET /profile/${req.params.email} to retrieve user profile`);
+  getUserProfileByEmail(req, res);
+});
+
 app.post('/profile', validateUserProfile, createUserProfile); // Create a new profile
+
 app.post('/profile/:email', validateUserProfile, updateUserProfileByEmail); // Update a profile by email
-app.delete('/profile/:email', deleteUserProfileByEmail); // Delete a profile by email
+
+app.delete('/profile/:email', (req, res) => {
+  console.log(`DELETE /profile/${req.params.email} to delete user profile`);
+  deleteUserProfileByEmail(req, res);
+});
+
+app.delete('/credentials/:email', deleteUserCredentialsByEmail);
+
 app.get('/profile', (req, res) => {
     if (!req.user || !req.user.email) {
       return res.status(401).json({ message: 'Unauthorized access. Please log in.' });
