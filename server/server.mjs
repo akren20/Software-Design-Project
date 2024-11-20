@@ -16,12 +16,7 @@ import {
     getVolunteerHistoryByEventName,
     deleteVolunteerHistoryByEventName
 } from './volunteerhistory.mjs';
-import {
-    validateNotification,
-    getAllNotifications,
-    createNotification,
-    deleteNotificationById
-} from './notification.mjs';
+import { getNotificationsByUser } from './notification.mjs';
 import {
     validateRegistration,
     validateLogin,
@@ -71,9 +66,7 @@ app.delete('/volunteer-history/:eventName', (req, res) => {
   deleteVolunteerHistoryByEventName(req, res);
 });
 // Notification routes
-app.get('/notifications', getAllNotifications);
-app.post('/notifications', validateNotification, createNotification);
-app.delete('/notifications/:id', deleteNotificationById);
+app.get('/notifications/:userEmail', getNotificationsByUser);
 
 // Authentication routes
 app.post('/signup', validateRegistration, (req, res) => {
