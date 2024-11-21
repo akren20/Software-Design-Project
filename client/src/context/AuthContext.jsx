@@ -1,36 +1,73 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 
-// Create a Context for authentication
 const AuthContext = createContext();
 
-// Create a custom hook to use the AuthContext
 export const useAuth = () => useContext(AuthContext);
 
-const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Manage login state
-  const [userRole, setUserRole] = useState("");
-  const navigate = useNavigate();
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const navigate = useNavigate();
 
-  const login = () => {
-    setIsLoggedIn(true); // Logic to log in (e.g., API call can go here)
-  };
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const savedUser = localStorage.getItem('user');
+        
+        if (token && savedUser) {
+            try {
+                const parsedUser = JSON.parse(savedUser);
+                // Ensure isAdmin is set based on role
+                parsedUser.isAdmin = parsedUser.role.toLowerCase() === 'admin';
+                setUser(parsedUser);
+                setIsAuthenticated(true);
+            } catch (error) {
+                console.error('Error parsing saved user:', error);
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            }
+        }
+    }, []);
 
-  const logout = () => {
-    localStorage.removeItem("loggedInUser");
-    setIsLoggedIn(false);
-    localStorage.clear();
-    navigate('/login'); };
+    const login = (userData, token) => {
+        // Ensure isAdmin is set based on role
+        const updatedUserData = {
+            ...userData,
+            isAdmin: userData.role.toLowerCase() === 'admin'
+        };
+        
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(updatedUserData));
+        
+        setUser(updatedUserData);
+        setIsAuthenticated(true);
 
-    const updateRole = (role) => {
-      setUserRole(role);
+        // Redirect based on user role
+        if (updatedUserData.isAdmin) {
+            navigate('/admin/dashboard');
+        } else {
+            navigate('/profile');
+        }
     };
 
-  return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout, updateRole, userRole }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+    const logout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+        setIsAuthenticated(false);
+        navigate('/login');
+    };
 
-export default AuthProvider;
+    return (
+        <AuthContext.Provider value={{ 
+            user,
+            setUser,
+            isAuthenticated,
+            login,
+            logout,
+            isAdmin: user?.isAdmin || false
+        }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};

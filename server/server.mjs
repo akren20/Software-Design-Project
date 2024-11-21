@@ -2,6 +2,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import jwt from 'jsonwebtoken';
+import { db } from './database/database.mjs';
 import {
     validateEvent,
     createOrUpdateEvent,
@@ -25,6 +27,7 @@ import {
 import {
     validateRegistration,
     validateLogin,
+    validateAdminRegistration,
     registerUser,
     loginUser, 
     getAllUsers
@@ -38,155 +41,167 @@ import {
     deleteUserProfileByEmail,
     deleteUserCredentialsByEmail
 } from './userProfile.mjs';
-import eventMatchingRoutes from './eventMatching.mjs'; // Event matching functionality
-
+import eventMatchingRoutes from './eventMatching.mjs';
 
 const app = express();
+export const JWT_SECRET = 'asdffdsa';
+const PORT = process.env.PORT || 8080;
+
+// Middleware
 app.use(bodyParser.json());
 app.use(cors());
 
-const JWT_SECRET = 'your_secret_key';
-
-// Event management routes
-app.post('/events', validateEvent, createOrUpdateEvent);
-app.get('/events', getAllEvents);
-app.get('/events/:eventName', getEventByName);
-app.delete('/events/:eventName', deleteEventByName);
-
-// Volunteer history routes
-app.post('/volunteer-history', validateVolunteerHistoryEntry, (req, res) => {
-  console.log('POST /volunteer-history called');
-  createOrUpdateVolunteerHistoryEntry(req, res);
-});
-app.get('/volunteer-history', (req, res) => {
-  console.log('GET /volunteer-history called');
-  getVolunteerHistory(req, res);
-});
-app.get('/volunteer-history/:eventName', (req, res) => {
-  console.log(`GET /volunteer-history/${req.params.eventName} called`);
-  getVolunteerHistoryByEventName(req, res);
-});
-app.delete('/volunteer-history/:eventName', (req, res) => {
-  console.log(`DELETE /volunteer-history/${req.params.eventName} called`);
-  deleteVolunteerHistoryByEventName(req, res);
-});
-// Notification routes
-app.get('/notifications', getAllNotifications);
-app.post('/notifications', validateNotification, createNotification);
-app.delete('/notifications/:id', deleteNotificationById);
-
-// Authentication routes
-app.post('/signup', validateRegistration, (req, res) => {
-  console.log('POST /signup with validation called');
-  registerUser(req, res);
-});
-
-app.post('/login', validateLogin, (req, res) => {
-  console.log('POST /login with validation called');
-  loginUser(req, res);
-});
-
-app.post('/signup', (req, res) => {
-  console.log('POST /signup called without validation');
-  registerUser(req, res);
-});
-
-app.post('/register', (req, res) => {
-    const { email, password } = req.body;
-  
-    // (Add validation and user existence check)
-  
-    const newUser = { email, password }; // Store the new user
-    // (Add logic to save user in a database or memory store)
-  
-    // Generate a JWT token
-    const token = jwt.sign({ email: newUser.email }, JWT_SECRET, { expiresIn: '1h' });
-  
-    // Send the token in response
-    res.status(201).json({ message: 'User registered successfully', token });
-  });
-  
-  // Middleware to authenticate token
-  const authenticateToken = (req, res, next) => {
+// Authentication middleware
+const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return res.sendStatus(401);
-  
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-      if (err) return res.sendStatus(403);
-      req.user = user;
-      next();
-    });
-  };
+    
+    if (!token) {
+        return res.status(401).json({ message: 'Access denied. No token provided.' });
+    }
 
-app.get('/users', getAllUsers);
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        console.error('Token verification failed:', error);
+        return res.status(403).json({ message: 'Invalid or expired token.' });
+    }
+};
+
+const authorizeAdmin = async (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    try {
+        // Verify admin status from database
+        const [user] = await db.query(
+            `SELECT r.role_name 
+             FROM UserCredentials u
+             JOIN Roles r ON u.role_id = r.role_id
+             WHERE u.email = ?`,
+            [req.user.email]
+        );
+
+        if (!user.length || user[0].role_name !== 'admin') {
+            return res.status(403).json({ 
+                message: 'Access denied: Admin privileges required'
+            });
+        }
+
+        next();
+    } catch (error) {
+        console.error('Admin verification failed:', error);
+        return res.status(500).json({ message: 'Error verifying admin status' });
+    }
+};
+
+// Authentication routes (unprotected)
+app.post('/signup', validateRegistration, registerUser);
+app.post('/login', validateLogin, loginUser);
+app.post('/admin/register', validateAdminRegistration, registerUser);
+
+// Check auth status route
+app.get('/auth/status', authenticateToken, (req, res) => {
+    res.json({
+        isAuthenticated: true,
+        user: {
+            email: req.user.email,
+            role: req.user.role
+        }
+    });
+});
+
+// Admin routes
+app.get('/admin/dashboard', authenticateToken, authorizeAdmin, (req, res) => {
+    res.status(200).json({
+        message: 'Welcome to the admin dashboard',
+        adminEmail: req.user.email,
+        access: 'full',
+        features: [
+            'User Management',
+            'Event Management',
+            'System Settings',
+            'Analytics'
+        ]
+    });
+});
+
+// Event routes
+app.post('/events', authenticateToken, validateEvent, createOrUpdateEvent);
+app.get('/events', getAllEvents);
+app.get('/events/:eventName', getEventByName);
+app.delete('/events/:eventName', authenticateToken, deleteEventByName);
+
+// Volunteer history routes
+app.post('/volunteer-history', authenticateToken, validateVolunteerHistoryEntry, createOrUpdateVolunteerHistoryEntry);
+app.get('/volunteer-history', authenticateToken, getVolunteerHistory);
+app.get('/volunteer-history/:eventName', authenticateToken, getVolunteerHistoryByEventName);
+app.delete('/volunteer-history/:eventName', authenticateToken, deleteVolunteerHistoryByEventName);
+
+// Notification routes
+app.get('/notifications', authenticateToken, getAllNotifications);
+app.post('/notifications', authenticateToken, validateNotification, createNotification);
+app.delete('/notifications/:id', authenticateToken, deleteNotificationById);
+
+// User profile routes
+app.get('/profiles', authenticateToken, authorizeAdmin, getAllUserProfiles);
+app.get('/profile/:email', authenticateToken, getUserProfileByEmail);
+app.post('/profile', authenticateToken, validateUserProfile, createUserProfile);
+app.put('/profile/:email', authenticateToken, validateUserProfile, updateUserProfileByEmail);
+app.delete('/profile/:email', authenticateToken, authorizeAdmin, deleteUserProfileByEmail);
+app.delete('/credentials/:email', authenticateToken, authorizeAdmin, deleteUserCredentialsByEmail);
+
+// Protected profile route
+app.get('/profile', authenticateToken, async (req, res) => {
+    try {
+        const userEmail = req.user.email;
+        const profile = await getUserProfileByEmail(userEmail);
+        
+        if (profile) {
+            res.json(profile);
+        } else {
+            const newProfile = {
+                email: userEmail,
+                fullName: '',
+                address1: '',
+                address2: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                skills: [],
+                preferences: '',
+                availability: []
+            };
+            
+            const createdProfile = await createUserProfile(newProfile);
+            res.status(201).json(createdProfile);
+        }
+    } catch (error) {
+        console.error("Error handling profile request:", error);
+        res.status(500).json({ message: "Error processing profile request" });
+    }
+});
 
 // Event matching routes
-app.use('/api', eventMatchingRoutes); // Changed from '/api/matching' to '/api'
+app.use('/api', authenticateToken, eventMatchingRoutes);
 
-app.get('/profiles', (req, res) => {
-  console.log("GET /profiles to retrieve every user profile");
-  getAllUserProfiles(req, res);
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Something went wrong!' });
 });
 
-app.get('/profile/:email', (req, res) => {
-  console.log(`GET /profile/${req.params.email} to retrieve user profile`);
-  getUserProfileByEmail(req, res);
-});
-
-app.post('/profile', validateUserProfile, createUserProfile); // Create a new profile
-
-app.post('/profile/:email', validateUserProfile, updateUserProfileByEmail); // Update a profile by email
-
-app.delete('/profile/:email', (req, res) => {
-  console.log(`DELETE /profile/${req.params.email} to delete user profile`);
-  deleteUserProfileByEmail(req, res);
-});
-
-app.delete('/credentials/:email', deleteUserCredentialsByEmail);
-
-app.get('/profile', (req, res) => {
-    if (!req.user || !req.user.email) {
-      return res.status(401).json({ message: 'Unauthorized access. Please log in.' });
-    }
-  
-    const userEmail = req.user.email;
-    const profile = getUserProfileByEmail(userEmail);
-    
-    if (profile) {
-      // If the profile exists, return it
-      res.json(profile);
-    } else {
-      // If the profile does not exist, create a new empty profile
-      const newProfile = {
-        email: userEmail,
-        fullName: "",
-        address1: "",
-        address2: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        skills: [],
-        preferences: "",
-        availability: []
-      };
-      
-      //to add  new profile
-      createUserProfile(newProfile);
-      
-      res.status(201).json(newProfile);
-    }
-  });
-
-// Default route
+// 404 handler
 app.use((req, res) => {
-    res.status(200).send('Hello, this route is undefined');
+    res.status(404).json({ message: 'Route not found' });
 });
 
-// Start the server
-const PORT = process.env.PORT || 8080;
+// Start server
 app.listen(PORT, () => {
-    console.log(`App listening on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
     console.log('Press Ctrl+C to quit.');
 });
 
