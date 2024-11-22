@@ -8,30 +8,31 @@ import UserProfile from "./pages/UserProfile";
 import AdminDashboard from "./pages/AdminDashboard";
 import VolunteerHistory from "./pages/VolunteerHistory";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import EventRegistration from './pages/EventRegistration';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuth();
-    
+
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
-    
+
     return children;
 };
 
 // Admin Route Component
 const AdminRoute = ({ children }) => {
     const { isAuthenticated, isAdmin } = useAuth();
-    
+
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
-    
+
     if (!isAdmin) {
         return <Navigate to="/" replace />;
     }
-    
+
     return children;
 };
 
@@ -44,34 +45,42 @@ const AppRoutes = () => {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
-                
+
                 {/* Protected Routes */}
-                <Route 
-                    path="/profile" 
+                <Route
+                    path="/profile"
                     element={
                         <ProtectedRoute>
                             <UserProfile />
                         </ProtectedRoute>
-                    } 
+                    }
                 />
-                
-                <Route 
-                    path="/volunteer/history" 
+                // Add this with your other routes inside Routes:
+                <Route
+                    path="/event-registration"
+                    element={
+                        <ProtectedRoute>
+                            <EventRegistration />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/volunteer/history"
                     element={
                         <ProtectedRoute>
                             <VolunteerHistory />
                         </ProtectedRoute>
-                    } 
+                    }
                 />
-                
+
                 {/* Admin Routes */}
-                <Route 
-                    path="/admin/dashboard" 
+                <Route
+                    path="/admin/dashboard"
                     element={
                         <AdminRoute>
                             <AdminDashboard />
                         </AdminRoute>
-                    } 
+                    }
                 />
 
                 {/* Catch all route */}

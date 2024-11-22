@@ -91,6 +91,8 @@ const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
+    console.log('Auth header received:', authHeader);
+
     if (!token) {
         return res.status(401).json({ message: 'Access denied. No token provided.' });
     }
@@ -391,10 +393,10 @@ app.get('/api/profile', authenticateToken, async (req, res) => {
 });
 
 // EventUsers routes
-app.post('/api/event-users', authenticateToken, validateEventUser, createEventUser);
-app.get('/api/event-users/event/:event_id', authenticateToken, getUsersByEvent);
-app.get('/api/event-users/user/:email', authenticateToken, getEventsByUser);
-app.delete('/api/event-users/:event_id/:email', authenticateToken, deleteEventUser);
+app.post('/api/event-users', validateEventUser, createEventUser);
+app.get('/api/event-users/event/:event_id', getUsersByEvent);
+app.get('/api/event-users/user/:email', getEventsByUser);
+app.delete('/api/event-users/:event_id/:email',  deleteEventUser);
 
 // Event matching routes
 app.use('/api', authenticateToken, eventMatchingRoutes);

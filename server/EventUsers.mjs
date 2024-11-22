@@ -9,17 +9,18 @@ export const validateEventUser = (req, res, next) => {
     next();
 };
 
-// Create
 export const createEventUser = async (req, res) => {
     const { event_id, email } = req.body;
     try {
+        console.log('Attempting to register:', { event_id, email });
         await db.query(
             'INSERT INTO EventUsers (event_id, email) VALUES (?, ?)',
             [event_id, email]
         );
+        console.log('Registration successful');
         res.status(201).json({ message: 'User registered for event successfully' });
     } catch (error) {
-        console.error('Error registering user for event:', error);
+        console.error('Database error:', error);
         res.status(500).json({ message: 'Error registering user for event' });
     }
 };

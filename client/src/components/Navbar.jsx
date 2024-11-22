@@ -15,7 +15,7 @@ const Navbar = () => {
         <nav className="bg-[#0c4a6e] p-4">
             <div className="container mx-auto flex justify-between items-center">
                 <div className="text-white text-2xl font-bold">UH Volunteers</div>
-                
+
                 <div className="md:hidden">
                     <button
                         onClick={toggleMenu}
@@ -49,21 +49,28 @@ const Navbar = () => {
                     {isAuthenticated ? (
                         <>
                             <NotificationDropdown />
-                            
+
+                            <Link
+                                to="/event-registration"
+                                className="block mt-4 md:inline-block md:mt-0 text-white mr-4 hover:cursor-pointer bg-green-600 px-4 py-2 rounded"
+                            >
+                                Register for Event
+                            </Link>
+
                             <Link
                                 to="/profile"
                                 className="block mt-4 md:inline-block md:mt-0 text-white mr-4 hover:cursor-pointer"
                             >
                                 Profile
                             </Link>
-                            
+
                             <Link
                                 to="/volunteer/history"
                                 className="block mt-4 md:inline-block md:mt-0 text-white mr-4 hover:cursor-pointer"
                             >
                                 Volunteer History
                             </Link>
-                            
+
                             {user?.isAdmin && (
                                 <Link
                                     to="/admin/dashboard"
@@ -76,7 +83,7 @@ const Navbar = () => {
                             <span className="block mt-4 md:inline-block md:mt-0 text-white mr-4">
                                 {user?.email}
                             </span>
-                            
+
                             <button
                                 onClick={logout}
                                 className="block mt-4 md:inline-block md:mt-0 text-white hover:cursor-pointer"
@@ -92,7 +99,7 @@ const Navbar = () => {
                             >
                                 Login
                             </Link>
-                            
+
                             <Link
                                 to="/signup"
                                 className="block mt-4 md:inline-block md:mt-0 text-white hover:cursor-pointer"
