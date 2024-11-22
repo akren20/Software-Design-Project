@@ -285,7 +285,7 @@ app.post('/notifications', authenticateToken,validateNotification, createNotific
 app.delete('/notifications/:id', authenticateToken,deleteNotificationById);*/
 
 // User profile routes
-app.get('/api/profiles', authenticateToken, authorizeAdmin, async (req, res) => {
+app.get('/api/profiles', async (req, res) => {
     try {
         await getAllUserProfiles(req, res);
     } catch (error) {

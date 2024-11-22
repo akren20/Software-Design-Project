@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import EventManagementForm from "./EventManagementForm";
-import VolunteerMatchingForm from "./VolunteerMatchingForm";
-import Calendar from "react-calendar";
+import AdminEventUserAssignment from "./AdminEventUserAssignment";
 import "react-calendar/dist/Calendar.css";
 import ReportGenerator from "../components/ReportGenerator";
 
@@ -61,7 +60,7 @@ const AdminDashboard = () => {
 
       <div>
         {activeTab === "events" && <EventManagementForm />}
-        {activeTab === "volunteer-matching" && <VolunteerMatchingForm />}
+        {activeTab === "volunteer-matching" && <AdminEventUserAssignment />}
         {activeTab === "reports" && (
           <ReportGenerator isAuthenticated={isAuthenticated} authToken={authToken} />
         )}
