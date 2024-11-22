@@ -20,7 +20,8 @@ import {
 } from './volunteerhistory.mjs';
 import {
     validateNotification,
-    getAllNotifications,
+    //getAllNotifications,
+    getNotificationsByUser,
     createNotification,
     deleteNotificationById
 } from './notification.mjs';
@@ -142,7 +143,7 @@ app.get('/volunteer-history/:eventName', authenticateToken, getVolunteerHistoryB
 app.delete('/volunteer-history/:eventName', authenticateToken, deleteVolunteerHistoryByEventName);
 
 // Notification routes
-app.get('/notifications', authenticateToken, getAllNotifications);
+app.get('/notifications', authenticateToken, getNotificationsByUser);
 app.post('/notifications', authenticateToken, validateNotification, createNotification);
 app.delete('/notifications/:id', authenticateToken, deleteNotificationById);
 
