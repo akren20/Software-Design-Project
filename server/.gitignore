@@ -3,6 +3,7 @@ node_modules
 
 # dependencies
 /node_modules
+Software-Design-Project/server/node_modules
 /.pnp
 .pnp.js
 

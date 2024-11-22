@@ -79,47 +79,46 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch user profile data on component mount
   useEffect(() => {
     const fetchProfileData = async () => {
-      const token = localStorage.getItem("token");
-      const email = localStorage.getItem("email");
-      console.log(email);
-
-      if (!token || !email) {
-        setError("User is not logged in.");
-        return;
-      }
-
-      try {
-        console.log(`Fetching profile for email: ${email}`);
-        const response = await fetch(`http://localhost:8080/profile/${email}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        //console.log(email);
-        if (response.ok) {
-          const data = await response.json();
-          setFormData(data);
-          console.log("Profile data fetched successfully:", data);
-        } else {
-          setError("Failed to fetch profile data.");
-          //console.log(error);
-          console.error("Error fetching profile:", response.statusText);
+        const token = localStorage.getItem("token");
+        const userData = localStorage.getItem("user");
+        
+        if (!token || !userData) {
+            setError("User is not logged in.");
+            return;
         }
-      } catch (err) {
-        setError("An error occurred while fetching profile data.");
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
+
+        const { email } = JSON.parse(userData);
+
+        try {
+            console.log(`Fetching profile for email: ${email}`);
+            const response = await fetch(`http://localhost:8080/profile/${encodeURIComponent(email)}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setFormData(data);
+                console.log("Profile data fetched successfully:", data);
+            } else {
+                setError("Failed to fetch profile data.");
+                console.error("Error fetching profile:", response.statusText);
+            }
+        } catch (err) {
+            setError("An error occurred while fetching profile data.");
+            console.error("Fetch error:", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     fetchProfileData();
-  }, []);
+}, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -153,36 +152,41 @@ const UserProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const email = localStorage.getItem("email");
+    const userData = localStorage.getItem("user");
 
-    if (!token || !email) {
-      setError("User is not logged in.");
-      return;
+    if (!token || !userData) {
+        setError("User is not logged in.");
+        return;
     }
+
+    const { email } = JSON.parse(userData);
 
     try {
-      const response = await fetch(`http://localhost:8080/profile/${encodeURIComponent(email)}`, {
-        //const response = await fetch(`http://localhost:8080/profile?email=${encodeURIComponent(email)}`, { // Add email as query param
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+        const response = await fetch(`http://localhost:8080/profile/${encodeURIComponent(email)}`, {
+            method: "PUT",  // Changed from POST to PUT
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                ...formData,
+                email: email  // Ensure email is included in the update
+            }),
+        });
 
-      if (response.ok) {
-        alert("Profile Updated Successfully!");
-        console.log(formData);
-      } else {
-        setError("Failed to update profile.");
-        console.error("Error updating profile:", response.statusText);
-      }
+        if (response.ok) {
+            alert("Profile Updated Successfully!");
+            console.log(formData);
+        } else {
+            const errorData = await response.json();
+            setError(errorData.message || "Failed to update profile.");
+            console.error("Error updating profile:", response.statusText);
+        }
     } catch (err) {
-      setError("An error occurred while updating profile.");
-      console.error("Update error:", err);
+        setError("An error occurred while updating profile.");
+        console.error("Update error:", err);
     }
-  };
+};
 
   if (loading) {
     return <p>Loading profile...</p>;
