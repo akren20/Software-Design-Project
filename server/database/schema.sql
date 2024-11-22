@@ -184,3 +184,8 @@ INSERT INTO UserProfile (email, full_name, address1, address2, city, state_code,
 
 INSERT INTO UserProfile (email, full_name, address1, address2, city, state_code, zip_code, skills, preferences, availability) VALUES 
 ('wyatt@admin.com', 'Wyatt Admin', '123 Admin St', '', 'Admin City', 'AC', '12345', '["Management", "Leadership"]', '"Administrative Tasks"', '["2024-11-01", "2024-11-30"]');
+
+INSERT INTO EventDetails (event_name, description, state_code, city, location, required_skills, urgency, event_date) 
+VALUES 
+("Community Cleanup", "A local community effort to clean parks and streets.", "CA", "Los Angeles", "Sunset Park", '["Leadership", "Teamwork"]', "Medium", "2024-12-05"),
+("Tech Workshop", "A beginner-friendly workshop introducing Python programming.", "NY", "New York", "TechHub Downtown", '["Technical Writing", "Communication"]', "High", "2024-11-30");
