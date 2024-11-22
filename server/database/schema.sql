@@ -181,3 +181,6 @@ INSERT INTO UserProfile (email, full_name, address1, address2, city, state_code,
 ('ethomas@gmail.com', 'Ethan Thomas', '707 Spruce Blvd', '', 'Seattle', 'WA', '98101', '["Communication", "Project Management"]', '"Hybrid work"', '["2024-10-05", "2024-10-14"]'),
 ('admin@example.edu', 'Admin User', '123 Admin St', '', 'Admin City', 'AC', '12345', '["Administration", "Leadership"]', '"Remote work"', '["2024-10-15", "2024-10-25"]'),
 ('volunteer@example.com', 'Volunteer User', '789 Volunteer Rd', '', 'Volunteer City', 'VC', '67890', '["Volunteering", "Teamwork"]', '"On-site work"', '["2024-10-10", "2024-10-20"]');
+
+INSERT INTO UserProfile (email, full_name, address1, address2, city, state_code, zip_code, skills, preferences, availability) VALUES 
+('wyatt@admin.com', 'Wyatt Admin', '123 Admin St', '', 'Admin City', 'AC', '12345', '["Management", "Leadership"]', '"Administrative Tasks"', '["2024-11-01", "2024-11-30"]');
