@@ -4,11 +4,59 @@ const skillsOptions = ["Communication", "Leadership", "Technical Writing", "Proj
 const urgencyLevels = ["Low", "Medium", "High", "Critical"]; // Example urgency levels
 
 const stateCityData = {
-  "California": ["Los Angeles", "San Francisco", "San Diego"],
-  "Texas": ["Houston", "Austin", "Dallas"],
+  Alabama: ["Birmingham", "Montgomery", "Huntsville"],
+  Alaska: ["Anchorage", "Fairbanks", "Juneau"],
+  Arizona: ["Phoenix", "Tucson", "Mesa"],
+  Arkansas: ["Little Rock", "Fayetteville", "Fort Smith"],
+  California: ["Los Angeles", "San Francisco", "San Diego"],
+  Colorado: ["Denver", "Colorado Springs", "Aurora"],
+  Connecticut: ["Hartford", "New Haven", "Stamford"],
+  Delaware: ["Wilmington", "Dover", "Newark"],
+  Florida: ["Miami", "Orlando", "Tampa"],
+  Georgia: ["Atlanta", "Savannah", "Augusta"],
+  Hawaii: ["Honolulu", "Hilo", "Kailua"],
+  Idaho: ["Boise", "Idaho Falls", "Pocatello"],
+  Illinois: ["Chicago", "Springfield", "Naperville"],
+  Indiana: ["Indianapolis", "Fort Wayne", "Evansville"],
+  Iowa: ["Des Moines", "Cedar Rapids", "Davenport"],
+  Kansas: ["Wichita", "Overland Park", "Topeka"],
+  Kentucky: ["Louisville", "Lexington", "Bowling Green"],
+  Louisiana: ["New Orleans", "Baton Rouge", "Shreveport"],
+  Maine: ["Portland", "Augusta", "Bangor"],
+  Maryland: ["Baltimore", "Annapolis", "Rockville"],
+  Massachusetts: ["Boston", "Worcester", "Springfield"],
+  Michigan: ["Detroit", "Grand Rapids", "Ann Arbor"],
+  Minnesota: ["Minneapolis", "Saint Paul", "Duluth"],
+  Mississippi: ["Jackson", "Gulfport", "Biloxi"],
+  Missouri: ["Kansas City", "Saint Louis", "Springfield"],
+  Montana: ["Billings", "Missoula", "Great Falls"],
+  Nebraska: ["Omaha", "Lincoln", "Bellevue"],
+  Nevada: ["Las Vegas", "Reno", "Carson City"],
+  "New Hampshire": ["Manchester", "Nashua", "Concord"],
+  "New Jersey": ["Newark", "Jersey City", "Paterson"],
+  "New Mexico": ["Albuquerque", "Santa Fe", "Las Cruces"],
   "New York": ["New York City", "Buffalo", "Rochester"],
-  "Florida": ["Miami", "Orlando", "Tampa"]
+  "North Carolina": ["Charlotte", "Raleigh", "Greensboro"],
+  "North Dakota": ["Fargo", "Bismarck", "Grand Forks"],
+  Ohio: ["Columbus", "Cleveland", "Cincinnati"],
+  Oklahoma: ["Oklahoma City", "Tulsa", "Norman"],
+  Oregon: ["Portland", "Eugene", "Salem"],
+  Pennsylvania: ["Philadelphia", "Pittsburgh", "Allentown"],
+  "Rhode Island": ["Providence", "Warwick", "Cranston"],
+  "South Carolina": ["Charleston", "Columbia", "Greenville"],
+  "South Dakota": ["Sioux Falls", "Rapid City", "Aberdeen"],
+  Tennessee: ["Nashville", "Memphis", "Knoxville"],
+  Texas: ["Houston", "Austin", "Dallas"],
+  Utah: ["Salt Lake City", "Provo", "Ogden"],
+  Vermont: ["Burlington", "Montpelier", "Rutland"],
+  Virginia: ["Virginia Beach", "Richmond", "Norfolk"],
+  Washington: ["Seattle", "Spokane", "Tacoma"],
+  "West Virginia": ["Charleston", "Huntington", "Morgantown"],
+  Wisconsin: ["Milwaukee", "Madison", "Green Bay"],
+  Wyoming: ["Cheyenne", "Casper", "Laramie"],
 };
+
+
 
 const EventManagementForm = () => {
   const [formData, setFormData] = useState({
@@ -57,10 +105,16 @@ const EventManagementForm = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:8080/events', {
-        method: 'POST',
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You must be logged in to perform this action.");
+        return;
+      }
+      const response = await fetch("http://localhost:8080/events", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Include token in the header
         },
         body: JSON.stringify(formData),
       });

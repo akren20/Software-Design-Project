@@ -27,7 +27,7 @@ export const getAllUserProfiles = async (req, res) => {
 // Get a specific user profile by email
 export const getUserProfileByEmail = async (req, res) => {
   const { email } = req.params;
-
+  console.log('Searching for user profile with email:', email);
   try {
     const [rows] = await db.query(
       "SELECT * FROM UserProfile WHERE email = ?",

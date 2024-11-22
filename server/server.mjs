@@ -86,7 +86,7 @@ const authorizeAdmin = async (req, res, next) => {
             [req.user.email]
         );
 
-        if (!user.length || user[0].role_name !== 'admin') {
+        if (!user.length || (user[0].role_name !== 'Admin' && user[0].role_name !== 'admin')) {
             return res.status(403).json({ 
                 message: 'Access denied: Admin privileges required'
             });
@@ -129,6 +129,7 @@ app.get('/admin/dashboard', authenticateToken, authorizeAdmin, (req, res) => {
         ]
     });
 });
+app.use('/api', authenticateToken, eventMatchingRoutes);
 
 // Event routes
 app.post('/events', authenticateToken, validateEvent, createOrUpdateEvent);
