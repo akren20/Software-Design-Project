@@ -144,9 +144,13 @@ app.get('/volunteer-history/:eventName', authenticateToken, getVolunteerHistoryB
 app.delete('/volunteer-history/:eventName', authenticateToken, deleteVolunteerHistoryByEventName);
 
 // Notification routes
-app.get('/notifications', authenticateToken, getNotificationsByUser);
-app.post('/notifications', authenticateToken, validateNotification, createNotification);
-app.delete('/notifications/:id', authenticateToken, deleteNotificationById);
+app.get('/notifications/:userEmail', getNotificationsByUser);
+app.post('/notifications', validateNotification, createNotification);
+
+app.delete('/notifications/:id', deleteNotificationById);
+/*app.get('/notifications', authenticateToken,getNotificationsByUser);
+app.post('/notifications', authenticateToken,validateNotification, createNotification);
+app.delete('/notifications/:id', authenticateToken,deleteNotificationById);*/
 
 // User profile routes
 app.get('/profiles', authenticateToken, authorizeAdmin, getAllUserProfiles);

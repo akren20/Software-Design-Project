@@ -36,21 +36,23 @@ const VolunteerMatchingForm = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No token provided");
-
+  
       const matchesResponse = await fetch(`http://localhost:8080/api/matches/${email}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+  
       if (!matchesResponse.ok) {
         throw new Error("Failed to fetch matches");
       }
-
+  
       const matchedEvents = await matchesResponse.json();
+      console.log("Matched Events Response:", matchedEvents); // Debug the response
       setMatchedEvents(matchedEvents);
     } catch (error) {
       console.error("Error fetching matches:", error);
     }
   };
+  
   const handleVolunteerChange = (e) => {
     const selectedEmail = e.target.value;
     setSelectedVolunteer(selectedEmail);
