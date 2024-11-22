@@ -1,93 +1,245 @@
+import { db } from './database/database.mjs';
 import { check, validationResult } from 'express-validator';
 
-let events = []; // In-memory event storage
-
+// Validation middleware
 export const validateEvent = [
-    check('eventName').isString().isLength({ min: 1, max: 100 }).withMessage('Event name is required and must be between 1 and 100 characters.'),
-    check('eventDescription').isString().isLength({ min: 1, max: 500 }).withMessage('Event description is required and must be between 1 and 500 characters.'),
-    check('state').isString().withMessage('State is required.'),
-    check('city').isString().withMessage('City is required.'),
-    check('requiredSkills').isArray().withMessage('Required skills must be an array.'),
-    check('urgency').isIn(['Low', 'Medium', 'High', 'Critical']).withMessage('Urgency must be one of: Low, Medium, High, Critical.'),
-    check('eventDate')
-    .isISO8601().withMessage('Event date must be a valid date in ISO 8601 format.'),
-    check('eventTime')
-    .matches(/^([01]\d|2[0-3]):?([0-5]\d)$/).withMessage('Event time must be a valid time in HH:mm format.')
-    .custom((value, { req }) => {
-        const eventDateTime = new Date(`${req.body.eventDate}T${value}:00`);
-        const now = new Date();
-        if (eventDateTime < now) {
-            throw new Error('Event date and time cannot be in the past.');
-        }
-        return true;
-    }),
+  check('eventName').isString().isLength({ min: 1, max: 255 }),
+  check('description').isString(),
+  check('stateCode').isString().isLength({ min: 2, max: 2 }),
+  check('city').isString().isLength({ min: 1, max: 100 }),
+  check('location').isString().isLength({ min: 1, max: 255 }),
+  check('requiredSkills').isArray(),
+  check('urgency').isIn(['Low', 'Medium', 'High']),
+  check('eventDate').isISO8601()
 ];
 
-export const createOrUpdateEvent = (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+export const getAllEvents = async (req, res) => {
+  console.log('getAllEvents called');
+  res.setHeader('Content-Type', 'application/json');
   
-    const { eventName, eventDescription, state, city, requiredSkills, urgency, eventDate, eventTime } = req.body;
-    const location = `${city}, ${state}`;
-    const dateTime = `${eventDate} ${eventTime}`;
-  
-    const eventIndex = events.findIndex(event => event.eventName === eventName);
-    if (eventIndex !== -1) {
-      // Update existing event
-      events[eventIndex] = { eventName, eventDescription, location, requiredSkills, urgency, dateTime };
-      return res.status(200).json({ message: 'Event updated successfully', event: events[eventIndex] });
-    } else {
-      // Create new event
-      const newEvent = { eventName, eventDescription, location, requiredSkills, urgency, dateTime };
-      events.push(newEvent);
-      return res.status(201).json({ message: 'Event created successfully', event: newEvent });
+  try {
+    console.log('Executing database query...');
+    const [rows] = await db.query(`
+      SELECT 
+        e.event_id,
+        e.event_name,
+        e.description,
+        e.state_code,
+        s.state_name,
+        e.city,
+        e.location,
+        e.required_skills,
+        e.urgency,
+        e.event_date,
+        COUNT(DISTINCT vh.email) as volunteer_count
+      FROM EventDetails e
+      LEFT JOIN States s ON e.state_code = s.state_code
+      LEFT JOIN VolunteerHistory vh ON e.event_name = vh.event_name
+      GROUP BY 
+        e.event_id,
+        e.event_name,
+        e.description,
+        e.state_code,
+        s.state_name,
+        e.city,
+        e.location,
+        e.required_skills,
+        e.urgency,
+        e.event_date
+      ORDER BY e.event_date DESC
+    `);
+
+    console.log('Raw database response:', rows);
+
+    if (!rows) {
+      console.log('No rows returned, sending empty array');
+      return res.json([]);
     }
-  };
 
-export const getAllEventsData = () => events;
+    // Clean and transform the data
+    const events = rows.map(event => ({
+      event_id: event.event_id,
+      event_name: event.event_name,
+      description: event.description,
+      state_code: event.state_code,
+      state_name: event.state_name,
+      city: event.city,
+      location: event.location || `${event.city}, ${event.state_name}`,
+      required_skills: typeof event.required_skills === 'string' 
+        ? JSON.parse(event.required_skills || '[]') 
+        : (event.required_skills || []),
+      urgency: event.urgency,
+      event_date: event.event_date,
+      volunteer_count: event.volunteer_count,
+      status: new Date(event.event_date) > new Date() ? 'Upcoming' : 'Completed'
+    }));
 
-export const getEventByNameData = (eventName) => {
-  return events.find(event => event.eventName === eventName);
-};
-
-export const getAllEvents = (req, res) => {
-  if (res) {
-    res.status(200).json(events);
-  } else {
-    return events;
+    console.log('Processed events:', events);
+    return res.json(events);
+  } catch (error) {
+    console.error('Error in getAllEvents:', error);
+    return res.status(500).json({ 
+      message: 'Error retrieving events', 
+      error: error.message 
+    });
   }
 };
 
-// Update this function to work both as a route handler and a utility function
-export const getEventByName = (reqOrEventName, res) => {
-    let eventName;
-    if (typeof reqOrEventName === 'string') {
-      eventName = reqOrEventName;
-    } else {
-      eventName = reqOrEventName.params.eventName;
+export const getEventByName = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        e.event_id,
+        e.event_name,
+        e.description,
+        e.state_code,
+        s.state_name,
+        e.city,
+        e.location,
+        e.required_skills,
+        e.urgency,
+        e.event_date,
+        COUNT(DISTINCT vh.email) as registered_volunteers
+      FROM EventDetails e
+      LEFT JOIN States s ON e.state_code = s.state_code
+      LEFT JOIN VolunteerHistory vh ON e.event_name = vh.event_name
+      WHERE e.event_name = ?
+      GROUP BY 
+        e.event_id,
+        e.event_name,
+        e.description,
+        e.state_code,
+        s.state_name,
+        e.city,
+        e.location,
+        e.required_skills,
+        e.urgency,
+        e.event_date
+    `, [req.params.eventName]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Event not found' });
     }
-  
-    const event = events.find(event => event.eventName === eventName);
-  
-    if (res) {
-      if (event) {
-        return res.status(200).json(event);
-      } else {
-        return res.status(404).json({ message: 'Event not found' });
-      }
+
+    const event = {
+      ...rows[0],
+      required_skills: typeof rows[0].required_skills === 'string'
+        ? JSON.parse(rows[0].required_skills || '[]')
+        : (rows[0].required_skills || []),
+      location: rows[0].location || `${rows[0].city}, ${rows[0].state_name}`,
+      status: new Date(rows[0].event_date) > new Date() ? 'Upcoming' : 'Completed'
+    };
+
+    res.status(200).json(event);
+  } catch (error) {
+    console.error('Error fetching event:', error);
+    res.status(500).json({ 
+      message: 'Error retrieving event', 
+      error: error.message 
+    });
+  }
+};
+
+export const createOrUpdateEvent = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const {
+    eventName,
+    description,
+    stateCode,
+    city,
+    location,
+    requiredSkills,
+    urgency,
+    eventDate,
+  } = req.body;
+
+  try {
+    // Check if event exists
+    const [existing] = await db.query(
+      'SELECT * FROM EventDetails WHERE event_name = ?', 
+      [eventName]
+    );
+
+    if (existing.length > 0) {
+      // Update existing event
+      await db.query(`
+        UPDATE EventDetails 
+        SET description = ?,
+            state_code = ?,
+            city = ?,
+            location = ?,
+            required_skills = ?,
+            urgency = ?,
+            event_date = ?
+        WHERE event_name = ?
+      `, [
+        description,
+        stateCode,
+        city,
+        location,
+        JSON.stringify(requiredSkills),
+        urgency,
+        eventDate,
+        eventName
+      ]);
+
+      res.status(200).json({ message: 'Event updated successfully' });
     } else {
-      return event;
+      // Create new event
+      await db.query(`
+        INSERT INTO EventDetails (
+          event_name,
+          description,
+          state_code,
+          city,
+          location,
+          required_skills,
+          urgency,
+          event_date
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        eventName,
+        description,
+        stateCode,
+        city,
+        location,
+        JSON.stringify(requiredSkills),
+        urgency,
+        eventDate
+      ]);
+
+      res.status(201).json({ message: 'Event created successfully' });
     }
-  };
-export const deleteEventByName = (req, res) => {
-    const { eventName } = req.params;
-    const eventIndex = events.findIndex(event => event.eventName === eventName);
-    if (eventIndex !== -1) {
-        events.splice(eventIndex, 1);
-        return res.status(200).json({ message: 'Event deleted successfully' });
-    } else {
-        return res.status(404).json({ message: 'Event not found' });
+  } catch (error) {
+    console.error('Error saving event:', error);
+    res.status(500).json({ 
+      message: 'Error saving event', 
+      error: error.message 
+    });
+  }
+};
+
+export const deleteEventByName = async (req, res) => {
+  try {
+    const [result] = await db.query(
+      'DELETE FROM EventDetails WHERE event_name = ?', 
+      [req.params.eventName]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Event not found' });
     }
+
+    res.status(200).json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    res.status(500).json({ 
+      message: 'Error deleting event', 
+      error: error.message 
+    });
+  }
 };

@@ -18,7 +18,8 @@
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.11.3",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "pdfkit": "^0.15.1"
   },
   "devDependencies": {
     "chai": "^5.1.1",
