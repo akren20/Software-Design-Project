@@ -1,8 +1,24 @@
 import React, { useState } from "react";
 
-const skillsOptions = ["Communication", "Leadership", "Technical Writing", "Project Management"]; // Example skills
-const urgencyLevels = ["Low", "Medium", "High", "Critical"]; // Example urgency levels
+// State code mapping
+const stateCodeMap = {
+  "Alabama": "AL", "Alaska": "AK", "Arizona": "AZ", "Arkansas": "AR",
+  "California": "CA", "Colorado": "CO", "Connecticut": "CT", "Delaware": "DE",
+  "Florida": "FL", "Georgia": "GA", "Hawaii": "HI", "Idaho": "ID",
+  "Illinois": "IL", "Indiana": "IN", "Iowa": "IA", "Kansas": "KS",
+  "Kentucky": "KY", "Louisiana": "LA", "Maine": "ME", "Maryland": "MD",
+  "Massachusetts": "MA", "Michigan": "MI", "Minnesota": "MN", "Mississippi": "MS",
+  "Missouri": "MO", "Montana": "MT", "Nebraska": "NE", "Nevada": "NV",
+  "New Hampshire": "NH", "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY",
+  "North Carolina": "NC", "North Dakota": "ND", "Ohio": "OH", "Oklahoma": "OK",
+  "Oregon": "OR", "Pennsylvania": "PA", "Rhode Island": "RI", "South Carolina": "SC",
+  "South Dakota": "SD", "Tennessee": "TN", "Texas": "TX", "Utah": "UT",
+  "Vermont": "VT", "Virginia": "VA", "Washington": "WA", "West Virginia": "WV",
+  "Wisconsin": "WI", "Wyoming": "WY"
+};
 
+const skillsOptions = ["Communication", "Leadership", "Technical Writing", "Project Management"];
+const urgencyLevels = ["Low", "Medium", "High"];
 const stateCityData = {
   Alabama: ["Birmingham", "Montgomery", "Huntsville"],
   Alaska: ["Anchorage", "Fairbanks", "Juneau"],
@@ -56,204 +72,233 @@ const stateCityData = {
   Wyoming: ["Cheyenne", "Casper", "Laramie"],
 };
 
-
-
 const EventManagementForm = () => {
   const [formData, setFormData] = useState({
     eventName: "",
-    eventDescription: "",
-    state: "",
+    description: "",
+    stateCode: "",
     city: "",
+    location: "",
     requiredSkills: [],
     urgency: "",
-    eventDate: "",
-    eventTime: "", // New field for event time
+    eventDate: ""
   });
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const [errors, setErrors] = useState({});
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
+    setFormData(prev => {
+      const newData = { ...prev, [name]: value };
 
-  const handleStateChange = (e) => {
-    const { value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      state: value,
-      city: "" // Reset city selection when state changes
-    }));
+      // Update location when state or city changes
+      if (name === 'stateCode' || name === 'city') {
+        const city = name === 'city' ? value : prev.city;
+        const state = name === 'stateCode' ? value : prev.stateCode;
+        if (city && state) {
+          newData.location = `${city}, ${state}`;
+        }
+      }
+      return newData;
+    });
   };
 
   const handleSkillsChange = (e) => {
-    const { options } = e.target;
-    const selectedSkills = [];
-    for (let i = 0; i < options.length; i++) {
-      if (options[i].selected) {
-        selectedSkills.push(options[i].value);
-      }
-    }
-    setFormData((prevState) => ({
-      ...prevState,
-      requiredSkills: selectedSkills,
+    const selectedSkills = Array.from(e.target.selectedOptions, option => option.value);
+    setFormData(prev => ({
+      ...prev,
+      requiredSkills: selectedSkills
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
+    setMessage({ type: "", text: "" });
 
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("You must be logged in to perform this action.");
+        setMessage({ type: "error", text: "Authentication required" });
         return;
       }
-      const response = await fetch("http://localhost:8080/events", {
+
+      const apiFormData = {
+        ...formData,
+        stateCode: stateCodeMap[formData.stateCode] || formData.stateCode
+      };
+
+      const response = await fetch("/api/events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Include token in the header
+          "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(apiFormData)
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        const errorData = await response.json();
+        if (errorData.errors) {
+          const formattedErrors = {};
+          errorData.errors.forEach(error => {
+            formattedErrors[error.path] = error.msg;
+          });
+          setErrors(formattedErrors);
+          setMessage({ type: "error", text: "Please correct the errors below." });
+          return;
+        }
+        throw new Error(errorData.message || 'Failed to create event');
       }
 
       const result = await response.json();
-      console.log("Submitted Event Data:", result);
-      alert("Event Created/Updated Successfully!");
-
+      setMessage({ type: "success", text: result.message });
+      setFormData({
+        eventName: "",
+        description: "",
+        stateCode: "",
+        city: "",
+        location: "",
+        requiredSkills: [],
+        urgency: "",
+        eventDate: ""
+      });
     } catch (error) {
-      console.error("Error submitting event:", error);
-      alert("Failed to create/update event.");
+      setMessage({ type: "error", text: error.message });
     }
   };
 
   return (
     <div className="max-w-lg mx-auto p-8">
       <h2 className="text-2xl font-bold mb-6">Event Management Form</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-gray-700">Event Name</label>
+
+      {message.text && (
+        <div className={`p-4 mb-4 rounded ${message.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+          }`}>
+          {message.text}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-gray-700 mb-2">Event Name</label>
           <input
             type="text"
             name="eventName"
-            maxLength="100"
             value={formData.eventName}
             onChange={handleInputChange}
             required
-            className="w-full p-2 border border-gray-300 rounded mt-1"
+            className={`w-full p-2 border ${errors.eventName ? 'border-red-500' : 'border-gray-300'} rounded`}
           />
+          {errors.eventName && <p className="text-red-500 text-sm mt-1">{errors.eventName}</p>}
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Event Description</label>
+
+        <div>
+          <label className="block text-gray-700 mb-2">Description</label>
           <textarea
-            name="eventDescription"
-            value={formData.eventDescription}
+            name="description"
+            value={formData.description}
             onChange={handleInputChange}
             required
-            className="w-full p-2 border border-gray-300 rounded mt-1"
-          ></textarea>
+            className={`w-full p-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded`}
+            rows="4"
+          />
+          {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">State</label>
+
+        <div>
+          <label className="block text-gray-700 mb-2">State</label>
           <select
-            name="state"
-            value={formData.state}
-            onChange={handleStateChange}
+            name="stateCode"
+            value={formData.stateCode}
+            onChange={handleInputChange}
             required
-            className="w-full p-2 border border-gray-300 rounded mt-1"
+            className={`w-full p-2 border ${errors.stateCode ? 'border-red-500' : 'border-gray-300'} rounded`}
           >
             <option value="">Select State</option>
-            {Object.keys(stateCityData).map((state) => (
+            {Object.keys(stateCityData).map(state => (
               <option key={state} value={state}>
                 {state}
               </option>
             ))}
           </select>
+          {errors.stateCode && <p className="text-red-500 text-sm mt-1">{errors.stateCode}</p>}
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">City</label>
+
+        <div>
+          <label className="block text-gray-700 mb-2">City</label>
           <select
             name="city"
             value={formData.city}
             onChange={handleInputChange}
             required
-            className="w-full p-2 border border-gray-300 rounded mt-1"
-            disabled={!formData.state} // Disable until a state is selected
+            className={`w-full p-2 border ${errors.city ? 'border-red-500' : 'border-gray-300'} rounded`}
+            disabled={!formData.stateCode}
           >
             <option value="">Select City</option>
-            {formData.state &&
-              stateCityData[formData.state].map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
+            {formData.stateCode && stateCityData[formData.stateCode].map(city => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
           </select>
+          {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Required Skills</label>
+
+        <div>
+          <label className="block text-gray-700 mb-2">Required Skills</label>
           <select
             name="requiredSkills"
             multiple
             value={formData.requiredSkills}
             onChange={handleSkillsChange}
             required
-            className="w-full p-2 border border-gray-300 rounded mt-1"
+            className={`w-full p-2 border ${errors.requiredSkills ? 'border-red-500' : 'border-gray-300'} rounded`}
           >
-            {skillsOptions.map((skill) => (
+            {skillsOptions.map(skill => (
               <option key={skill} value={skill}>
                 {skill}
               </option>
             ))}
           </select>
+          {errors.requiredSkills && <p className="text-red-500 text-sm mt-1">{errors.requiredSkills}</p>}
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Urgency</label>
+
+        <div>
+          <label className="block text-gray-700 mb-2">Urgency</label>
           <select
             name="urgency"
             value={formData.urgency}
             onChange={handleInputChange}
             required
-            className="w-full p-2 border border-gray-300 rounded mt-1"
+            className={`w-full p-2 border ${errors.urgency ? 'border-red-500' : 'border-gray-300'} rounded`}
           >
-            <option value="">Select urgency level</option>
-            {urgencyLevels.map((level) => (
+            <option value="">Select Urgency</option>
+            {urgencyLevels.map(level => (
               <option key={level} value={level}>
                 {level}
               </option>
             ))}
           </select>
+          {errors.urgency && <p className="text-red-500 text-sm mt-1">{errors.urgency}</p>}
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Event Date</label>
+
+        <div>
+          <label className="block text-gray-700 mb-2">Event Date</label>
           <input
             type="date"
             name="eventDate"
             value={formData.eventDate}
             onChange={handleInputChange}
             required
-            className="w-full p-2 border border-gray-300 rounded mt-1"
+            className={`w-full p-2 border ${errors.eventDate ? 'border-red-500' : 'border-gray-300'} rounded`}
           />
+          {errors.eventDate && <p className="text-red-500 text-sm mt-1">{errors.eventDate}</p>}
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Event Time</label>
-          <input
-            type="time"
-            name="eventTime"
-            value={formData.eventTime}
-            onChange={handleInputChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded mt-1"
-          />
-        </div>
+
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
         >
           Save Event
         </button>

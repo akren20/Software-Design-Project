@@ -55,14 +55,6 @@ const AdminDashboard = () => {
             activeTab === "all-events" ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
         >
-          All Events
-        </button>
-        <button
-          onClick={() => handleTabChange("reports")}
-          className={`px-4 py-2 ${
-            activeTab === "reports" ? "bg-blue-500 text-white" : "bg-gray-200"
-          }`}
-        >
           Reports
         </button>
       </div>
@@ -72,16 +64,6 @@ const AdminDashboard = () => {
         {activeTab === "volunteer-matching" && <VolunteerMatchingForm />}
         {activeTab === "reports" && (
           <ReportGenerator isAuthenticated={isAuthenticated} authToken={authToken} />
-        )}
-        {activeTab === "all-events" && (
-          <div className="bg-white p-4 shadow-md rounded-lg">
-            <h2 className="text-2xl font-semibold mb-4">Event Calendar</h2>
-            <Calendar
-              onChange={handleDateChange}
-              value={selectedDate}
-              className="mx-auto"
-            />
-          </div>
         )}
       </div>
     </div>
