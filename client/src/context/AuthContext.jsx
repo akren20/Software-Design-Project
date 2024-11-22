@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
         if (updatedUserData.isAdmin) {
             navigate('/admin/dashboard');
         } else {
-            navigate('/profile');
+            navigate('api/profile');
         }
     };
 

@@ -25,8 +25,7 @@ export const getAllUserProfiles = async (req, res) => {
 };
 
 // Get a specific user profile by email
-export const getUserProfileByEmail = async (req, res) => {
-  const { email } = req.params;
+export const getUserProfileByEmail = async (email) => {
   console.log('Searching for user profile with email:', email);
   try {
     const [rows] = await db.query(
@@ -34,53 +33,74 @@ export const getUserProfileByEmail = async (req, res) => {
       [email]
     );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Profile not found" });
-    }
-
-
-    res.status(200).json(rows[0]);
+    return rows.length > 0 ? rows[0] : null;
   } catch (error) {
     console.error("Error fetching user profile:", error);
-    res.status(500).json({ message: "An error occurred while fetching the profile" });
+    throw error;
   }
 };
 
 // Create a new user profile
-export const createUserProfile = async (req, res) => {
-  const { email, fullName, address1, address2, city, state, zipCode, skills, preferences, availability } = req.body;
+export const createUserProfile = async (profileData) => {
+  const { 
+    email, 
+    full_name, 
+    address1, 
+    address2, 
+    city, 
+    state_code, 
+    zip_code, 
+    skills, 
+    preferences = '', // Default to empty string if undefined
+    availability = [] // Default to empty array if undefined
+  } = profileData;
 
   try {
     if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+      throw new Error("Email is required");
     }
 
     const [result] = await db.query(
       "INSERT INTO UserProfile (email, full_name, address1, address2, city, state_code, zip_code, skills, preferences, availability) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [email, fullName, address1, address2, city, state, zipCode, JSON.stringify(skills), preferences, JSON.stringify(availability)]
+      [
+        email, 
+        full_name, 
+        address1, 
+        address2, 
+        city, 
+        state_code, 
+        zip_code, 
+        skills ? JSON.stringify(skills) : '[]', // Ensure skills is a valid JSON string
+        preferences || JSON.stringify([]), // Ensure preferences is a string
+        availability ? JSON.stringify(availability) : '[]' // Ensure availability is a valid JSON string
+      ]
     );
 
-    res.status(201).json({ message: "Profile created successfully", id: result.insertId });
+    return { message: "Profile created successfully", id: result.insertId };
   } catch (error) {
     console.error("Error creating user profile:", error);
-    res.status(500).json({ message: "An error occurred while creating the profile" });
+    throw error;
   }
 };
 
-export const updateUserProfileByEmail = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { email } = req.params;
-  const { fullName, address1, address2, city, state, zipCode, skills, preferences, availability } = req.body;
+export const updateUserProfileByEmail = async (email, profileData) => {
+  const { 
+    full_name, 
+    address1, 
+    address2, 
+    city, 
+    state_code, 
+    zip_code, 
+    skills, 
+    preferences = '', 
+    availability = [] 
+  } = profileData;
 
   try {
     // Check if the user profile exists
     const [rows] = await db.query("SELECT * FROM UserProfile WHERE email = ?", [email]);
     if (rows.length === 0) {
-      return res.status(404).json({ message: "Profile not found" });
+      throw new Error("Profile not found");
     }
 
     // Update the profile with new values (or keep existing values if not provided)
@@ -92,22 +112,32 @@ export const updateUserProfileByEmail = async (req, res) => {
            city = COALESCE(?, city),
            state_code = COALESCE(?, state_code),
            zip_code = COALESCE(?, zip_code),
-           skills = COALESCE(?, skills),
-           preferences = COALESCE(?, preferences),
-           availability = COALESCE(?, availability)
+           skills = COALESCE(CAST(? AS JSON), skills),
+          preferences = COALESCE(CAST(? AS JSON), preferences),
+          availability = COALESCE(CAST(? AS JSON), availability)
        WHERE email = ?`,
-      [fullName, address1, address2, city, state, zipCode, JSON.stringify(skills), JSON.stringify(preferences), JSON.stringify(availability), email]
+      [
+        full_name, 
+        address1, 
+        address2, 
+        city, 
+        state_code, 
+        zip_code, 
+        JSON.stringify(skills || null),         // Convert to JSON if applicable
+        JSON.stringify(preferences || null),
+        JSON.stringify(availability || null),
+        email
+      ]
     );
     
     const [updatedProfile] = await db.query("SELECT * FROM UserProfile WHERE email = ?", [email]);
 
-    res.status(200).json({ message: "Profile updated successfully", profile: updatedProfile[0] });
+    return { message: "Profile updated successfully", profile: updatedProfile[0] };
   } catch (error) {
     console.error("Error updating profile:", error);
-    res.status(500).json({ message: "An error occurred while updating the profile" });
+    throw error;
   }
 };
-
 
 export const deleteUserProfileByEmail = async (req, res) => {
   const { email } = req.params;

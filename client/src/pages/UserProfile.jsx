@@ -82,18 +82,15 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
         const token = localStorage.getItem("token");
-        const userData = localStorage.getItem("user");
         
-        if (!token || !userData) {
+        if (!token) {
             setError("User is not logged in.");
+            setLoading(false);
             return;
         }
 
-        const { email } = JSON.parse(userData);
-
         try {
-            console.log(`Fetching profile for email: ${email}`);
-            const response = await fetch(`http://localhost:8080/profile/${encodeURIComponent(email)}`, {
+            const response = await fetch("http://localhost:8080/api/profile", {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -106,8 +103,9 @@ const UserProfile = () => {
                 setFormData(data);
                 console.log("Profile data fetched successfully:", data);
             } else {
-                setError("Failed to fetch profile data.");
-                console.error("Error fetching profile:", response.statusText);
+                const errorData = await response.text();
+                setError(`Failed to fetch profile data: ${errorData}`);
+                console.error("Error fetching profile:", errorData);
             }
         } catch (err) {
             setError("An error occurred while fetching profile data.");
@@ -162,7 +160,7 @@ const UserProfile = () => {
     const { email } = JSON.parse(userData);
 
     try {
-        const response = await fetch(`http://localhost:8080/profile/${encodeURIComponent(email)}`, {
+        const response = await fetch(`http://localhost:8080/api/profile/${encodeURIComponent(email)}`, {
             method: "PUT",  // Changed from POST to PUT
             headers: {
                 "Content-Type": "application/json",

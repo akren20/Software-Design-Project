@@ -35,7 +35,7 @@ const Signup = () => {
         }
 
         console.log("Registration successful:", data);
-        window.location.href = "/profile";
+        window.location.href = "api/profile";
       } else {
         setError(data.message || "Registration failed. Please try again.");
         console.error("Error during registration:", data.message);

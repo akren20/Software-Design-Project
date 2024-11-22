@@ -47,15 +47,14 @@ const AppRoutes = () => {
                 <Route path="/signup" element={<Signup />} />
 
                 {/* Protected Routes */}
-                <Route
-                    path="/profile"
+                <Route 
+                    path="api/profile" 
                     element={
                         <ProtectedRoute>
                             <UserProfile />
                         </ProtectedRoute>
                     }
                 />
-                // Add this with your other routes inside Routes:
                 <Route
                     path="/event-registration"
                     element={

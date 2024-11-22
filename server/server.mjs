@@ -310,29 +310,36 @@ app.get('/api/profile/:email', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/profile', authenticateToken, validateUserProfile, async (req, res) => {
-    try {
-        await createUserProfile(req.body);
-        res.status(201).json({ message: 'Profile created successfully' });
-    } catch (error) {
-        console.error('Error in POST /api/profile:', error);
-        res.status(500).json({ 
-            message: 'Error creating profile',
-            error: error.message 
-        });
-    }
+  try {
+      const userEmail = req.user.email;
+      const profileData = {
+          ...req.body,
+          email: userEmail
+      };
+
+      const result = await createUserProfile(profileData);
+      res.status(201).json(result);
+  } catch (error) {
+      console.error('Error in POST /api/profile:', error);
+      res.status(500).json({ 
+          message: 'Error creating profile',
+          error: error.message 
+      });
+  }
 });
 
 app.put('/api/profile/:email', authenticateToken, validateUserProfile, async (req, res) => {
-    try {
-        await updateUserProfileByEmail(req.params.email, req.body);
-        res.status(200).json({ message: 'Profile updated successfully' });
-    } catch (error) {
-        console.error('Error in PUT /api/profile/:email:', error);
-        res.status(500).json({ 
-            message: 'Error updating profile',
-            error: error.message 
-        });
-    }
+  try {
+      const userEmail = req.params.email;
+      await updateUserProfileByEmail(userEmail, req.body);
+      res.status(200).json({ message: 'Profile updated successfully' });
+  } catch (error) {
+      console.error('Error in PUT /api/profile/:email:', error);
+      res.status(500).json({ 
+          message: 'Error updating profile',
+          error: error.message 
+      });
+  }
 });
 
 app.delete('/api/profile/:email', authenticateToken, authorizeAdmin, async (req, res) => {
@@ -363,33 +370,38 @@ app.delete('/api/credentials/:email', authenticateToken, authorizeAdmin, async (
 
 // Protected profile route
 app.get('/api/profile', authenticateToken, async (req, res) => {
-    try {
-        const userEmail = req.user.email;
-        const profile = await getUserProfileByEmail(userEmail);
+  try {
+      const userEmail = req.user.email;
+      console.log("Fetching profile for email:", userEmail);
 
-        if (profile) {
-            res.json(profile);
-        } else {
-            const newProfile = {
-                email: userEmail,
-                fullName: '',
-                address1: '',
-                address2: '',
-                city: '',
-                stateCode: '',
-                zipCode: '',
-                skills: [],
-                preferences: '',
-                availability: []
-            };
+      const profile = await getUserProfileByEmail(userEmail);
 
-            const createdProfile = await createUserProfile(newProfile);
-            res.status(201).json(createdProfile);
-        }
-    } catch (error) {
-        console.error("Error handling profile request:", error);
-        res.status(500).json({ message: "Error processing profile request" });
-    }
+      if (profile) {
+          res.json(profile);
+      } else {
+          const newProfile = {
+              email: userEmail,
+              full_name: '',
+              address1: '',
+              address2: '',
+              city: '',
+              state_code: '',
+              zip_code: '',
+              skills: [],
+              preferences: '',
+              availability: []
+          };
+
+          const createdProfile = await createUserProfile(newProfile);
+          res.status(201).json(createdProfile);
+      }
+  } catch (error) {
+      console.error("Error handling profile request:", error);
+      res.status(500).json({ 
+          message: "Error processing profile request",
+          error: error.message 
+      });
+  }
 });
 
 // EventUsers routes

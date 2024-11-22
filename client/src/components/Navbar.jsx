@@ -58,7 +58,7 @@ const Navbar = () => {
                             </Link>
 
                             <Link
-                                to="/profile"
+                                to="/api/profile"
                                 className="block mt-4 md:inline-block md:mt-0 text-white mr-4 hover:cursor-pointer"
                             >
                                 Profile
