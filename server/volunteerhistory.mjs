@@ -15,17 +15,27 @@ export const validateVolunteerHistoryEntry = [
 ];
 
 // Retrieve all volunteer history entries
-export const getVolunteerHistory = async (req, res) => {
+/*export const getVolunteerHistory = async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM VolunteerHistory');
     res.status(200).json(rows);
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving volunteer history entries', error });
   }
+};*/
+// Retrieve all volunteer history entries
+export const getVolunteerHistory = async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT email, event_name, event_description, location, required_skills, urgency, event_date, participation_status FROM VolunteerHistory');
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving volunteer history entries', error });
+  }
 };
 
+
 // Retrieve a specific volunteer history entry by event name
-export const getVolunteerHistoryByEventName = async (req, res) => {
+/*export const getVolunteerHistoryByEventName = async (req, res) => {
   const { eventName } = req.params;
   try {
     const [rows] = await db.query('SELECT * FROM VolunteerHistory WHERE event_name = ?', [eventName]);
@@ -37,7 +47,22 @@ export const getVolunteerHistoryByEventName = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving volunteer history entry', error });
   }
+};*/
+// Retrieve a specific volunteer history entry by event name
+export const getVolunteerHistoryByEventName = async (req, res) => {
+  const { eventName } = req.params;
+  try {
+    const [rows] = await db.query('SELECT email, event_name, event_description, location, required_skills, urgency, event_date, participation_status FROM VolunteerHistory WHERE event_name = ?', [eventName]);
+    if (rows.length > 0) {
+      res.status(200).json(rows[0]);
+    } else {
+      res.status(404).json({ message: 'Volunteer history entry not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving volunteer history entry', error });
+  }
 };
+
 
 // Create or update a volunteer history entry
 export const createOrUpdateVolunteerHistoryEntry = async (req, res) => {

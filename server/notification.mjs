@@ -1,87 +1,92 @@
-// notification.mjs
+import { db } from './database/database.mjs'; // Database connection
 import { check, validationResult } from 'express-validator';
 
-let notifications = [
-  { id: 1, type: "Event Assignment", message: "You have been assigned to the Community Cleanup event." },
-  { id: 2, type: "Reminder", message: "Don't forget to complete your profile." },
-  { id: 3, type: "Update", message: "The Tech Workshop event details have been updated." },
-];
-
-let events = [
-  { id: 1, title: "Community Cleanup", date: new Date(Date.now() + 86400000), isUpdated: false },
-  { id: 2, title: "Tech Workshop", date: new Date(Date.now() + 43200000), isUpdated: true },
-];
-
-// Validation rules for notifications
+// Validation rules for creating notifications
 export const validateNotification = [
-  check('type').isIn(['Event Assignment', 'Reminder', 'Update']).withMessage('Invalid notification type.'),
-  check('message').isString().isLength({ min: 1, max: 255 }).withMessage('Message must be between 1 and 255 characters.')
+  check('type')
+    .isIn(['Event Assignment', 'Reminder', 'Update', 'General'])
+    .withMessage('Invalid notification type.'),
+  check('message')
+    .isString()
+    .isLength({ min: 1, max: 255 })
+    .withMessage('Message must be between 1 and 255 characters.')
 ];
 
-// Get all notifications
-export const getAllNotifications = (req, res) => {
-  res.status(200).json(notifications);
+// Get all notifications for a specific user
+export const getNotificationsByUser = async (req, res) => {
+  const { userEmail } = req.params;
+  try {
+    console.log(`Fetching notifications for: ${userEmail}`); // Debug email
+    const [rows] = await db.query(
+      `SELECT n.*, e.event_name, e.event_date 
+       FROM Notifications n
+       LEFT JOIN EventDetails e ON n.event_id = e.event_id
+       WHERE n.user_email = ?
+       ORDER BY n.created_at DESC`,
+      [userEmail]
+    );
+    console.log(`Query result:`, rows); // Debug query result
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error("Error in getNotificationsByUser:", error); // Debug errors
+    res.status(500).json({ message: 'Error retrieving notifications', error });
+  }
 };
 
 // Create a new notification
-export const createNotification = (req, res) => {
+export const createNotification = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { type, message } = req.body;
-  const newNotification = { id: notifications.length + 1, type, message };
-  notifications.push(newNotification);
-  res.status(201).json({ message: "Notification created successfully", notification: newNotification });
+  const { userEmail, eventId, type, message } = req.body;
+  try {
+    await db.query(
+      `INSERT INTO Notifications (user_email, event_id, type, message) 
+       VALUES (?, ?, ?, ?)`,
+      [userEmail, eventId || null, type, message]
+    );
+    res.status(201).json({ message: 'Notification created successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating notification', error });
+  }
 };
 
 // Delete a notification by ID
-export const deleteNotificationById = (req, res) => {
+export const deleteNotificationById = async (req, res) => {
   const { id } = req.params;
-  const notificationIndex = notifications.findIndex(n => n.id === parseInt(id));
-  
-  if (notificationIndex === -1) {
-    return res.status(404).json({ message: "Notification not found" });
+  try {
+    const [result] = await db.query(`DELETE FROM Notifications WHERE notification_id = ?`, [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+    res.status(200).json({ message: 'Notification deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting notification', error });
   }
-
-  notifications.splice(notificationIndex, 1);
-  res.status(200).json({ message: "Notification deleted successfully" });
 };
 
 // Reminder Notification Logic (check every hour)
-setInterval(() => {
-  const now = new Date();
-  events.forEach(event => {
-    const hoursUntilEvent = (event.date - now) / (1000 * 60 * 60);
+setInterval(async () => {
+  try {
+    const [events] = await db.query(`SELECT * FROM EventDetails WHERE event_date > NOW()`); // Fetch upcoming events
+    const now = new Date();
 
-    // Check if the event is within the reminder period (e.g., 24 hours)
-    if (hoursUntilEvent <= 24 && hoursUntilEvent > 23) {
-      const reminderNotification = {
-        id: notifications.length + 1,
-        type: "Reminder",
-        message: `Reminder: The event "${event.title}" is coming up in 24 hours!`,
-      };
-      notifications.push(reminderNotification);
-      console.log("Reminder sent:", reminderNotification);
+    for (const event of events) {
+      const hoursUntilEvent = (new Date(event.event_date) - now) / (1000 * 60 * 60);
+      if (hoursUntilEvent <= 24 && hoursUntilEvent > 23) {
+        const message = `Reminder: The event "${event.event_name}" is coming up in 24 hours!`;
+        await db.query(
+          `INSERT INTO Notifications (user_email, event_id, type, message)
+           SELECT email, ? AS event_id, 'Reminder' AS type, ? AS message
+           FROM UserProfile`,
+          [event.event_id, message]
+        );
+        console.log("Reminder sent for event:", event.event_name);
+      }
     }
-  });
+  } catch (error) {
+    console.error("Error generating reminders:", error);
+  }
 }, 3600000); // Runs every hour
-
-// Update Notification Logic (check every 5 minutes)
-setInterval(() => {
-  events.forEach(event => {
-    if (event.isUpdated) {
-      const updateNotification = {
-        id: notifications.length + 1,
-        type: "Update",
-        message: `The event "${event.title}" has been updated. Please check the latest details.`,
-      };
-      notifications.push(updateNotification);
-      console.log("Update notification sent:", updateNotification);
-
-      // Reset the update flag after notifying
-      event.isUpdated = false;
-    }
-  });
-}, 300000); // Runs every 5 minutes

@@ -44,6 +44,7 @@ const VolunteerHistory = () => {
       <table className="min-w-full bg-white border border-gray-200">
         <thead>
           <tr className="bg-gray-100 border-b">
+            <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Email</th>
             <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Event Name</th>
             <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Event Description</th>
             <th className="py-2 px-4 text-left text-sm font-semibold text-gray-600">Location</th>
@@ -66,6 +67,7 @@ const VolunteerHistory = () => {
         <tbody>
           {history.map((event, index) => (
             <tr key={index} className="border-b hover:bg-gray-50">
+              <td className="py-2 px-4 text-sm">{event.email}</td>
               <td className="py-2 px-4 text-sm">{event.eventName}</td>
               <td className="py-2 px-4 text-sm">{event.eventDescription}</td>
               <td className="py-2 px-4 text-sm">{event.location}</td>
@@ -82,6 +84,7 @@ const VolunteerHistory = () => {
       </table>
     </div>
   );
+  
 };
 
 export default VolunteerHistory;
