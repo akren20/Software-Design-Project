@@ -6,7 +6,6 @@ import ReportGenerator from "../components/ReportGenerator";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("events");
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authToken, setAuthToken] = useState(null);
 
@@ -20,10 +19,6 @@ const AdminDashboard = () => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-  };
-
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
   };
 
   return (
@@ -49,9 +44,9 @@ const AdminDashboard = () => {
           Volunteer Matching
         </button>
         <button
-          onClick={() => handleTabChange("all-events")}
+          onClick={() => handleTabChange("reports")}
           className={`px-4 py-2 mr-2 ${
-            activeTab === "all-events" ? "bg-blue-500 text-white" : "bg-gray-200"
+            activeTab === "reports" ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
         >
           Reports

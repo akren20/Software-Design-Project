@@ -41,8 +41,8 @@ const Signup = () => {
         console.error("Error during registration:", data.message);
       }
     } catch (error) {
-      setError("An error occurred during registration.");
-      console.error("Error during registration:", error);
+      //setError("An error occurred during registration.");
+      //console.error("Error during registration:", error);
     }
   };
 

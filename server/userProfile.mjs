@@ -71,7 +71,7 @@ export const createUserProfile = async (profileData) => {
         state_code, 
         zip_code, 
         skills ? JSON.stringify(skills) : '[]', // Ensure skills is a valid JSON string
-        preferences || JSON.stringify([]), // Ensure preferences is a string
+        preferences ? JSON.stringify(preferences): '[]', // Ensure preferences is a string
         availability ? JSON.stringify(availability) : '[]' // Ensure availability is a valid JSON string
       ]
     );

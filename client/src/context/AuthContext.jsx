@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }) => {
         // Ensure isAdmin is set based on role
         const updatedUserData = {
             ...userData,
+            role: userData.role || "user",
             isAdmin: userData.role.toLowerCase() === 'admin'
         };
         
