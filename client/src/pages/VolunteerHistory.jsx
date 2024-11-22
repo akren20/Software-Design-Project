@@ -79,16 +79,16 @@ const VolunteerHistory = () => {
           {history.map((event, index) => (
             <tr key={index} className="border-b hover:bg-gray-50">
               <td className="py-2 px-4 text-sm">{event.email}</td>
-              <td className="py-2 px-4 text-sm">{event.eventName}</td>
-              <td className="py-2 px-4 text-sm">{event.eventDescription}</td>
+              <td className="py-2 px-4 text-sm">{event.event_name}</td>
+<td className="py-2 px-4 text-sm">{event.event_description}</td>
               <td className="py-2 px-4 text-sm">{event.location}</td>
               {/* Handle undefined or non-array requiredSkills */}
               <td className="py-2 px-4 text-sm">
-                {(event.requiredSkills || []).join(", ")}
+                {(event.required_skills || []).join(", ")}
               </td>
               <td className="py-2 px-4 text-sm">{event.urgency}</td>
-              <td className="py-2 px-4 text-sm">{event.eventDate}</td>
-              <td className="py-2 px-4 text-sm">{event.participationStatus}</td>
+              <td className="py-2 px-4 text-sm">{event.event_date}</td>
+              <td className="py-2 px-4 text-sm">{event.participation_status}</td>
             </tr>
           ))}
         </tbody>
