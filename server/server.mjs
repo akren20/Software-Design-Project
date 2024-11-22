@@ -13,6 +13,13 @@ import {
     deleteEventByName
 } from './events.mjs';
 import {
+    validateEventUser,
+    createEventUser,
+    getUsersByEvent,
+    getEventsByUser,
+    deleteEventUser
+} from './EventUsers.mjs';
+import {
     validateVolunteerHistoryEntry,
     createOrUpdateVolunteerHistoryEntry,
     getVolunteerHistory,
@@ -382,6 +389,12 @@ app.get('/api/profile', authenticateToken, async (req, res) => {
         res.status(500).json({ message: "Error processing profile request" });
     }
 });
+
+// EventUsers routes
+app.post('/api/event-users', authenticateToken, validateEventUser, createEventUser);
+app.get('/api/event-users/event/:event_id', authenticateToken, getUsersByEvent);
+app.get('/api/event-users/user/:email', authenticateToken, getEventsByUser);
+app.delete('/api/event-users/:event_id/:email', authenticateToken, deleteEventUser);
 
 // Event matching routes
 app.use('/api', authenticateToken, eventMatchingRoutes);

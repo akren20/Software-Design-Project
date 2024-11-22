@@ -65,6 +65,15 @@ CREATE TABLE Notifications (
     FOREIGN KEY (email) REFERENCES UserCredentials(email) ON DELETE CASCADE
 );
 
+CREATE TABLE EventUsers (
+    event_id INT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    signup_timestamp TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (event_id, email),
+    FOREIGN KEY (event_id) REFERENCES EventDetails(event_id) ON DELETE CASCADE,
+    FOREIGN KEY (email) REFERENCES UserCredentials(email) ON DELETE CASCADE
+);
+
 -- will not execute in schema 10/30
 DELIMITER //
 CREATE TRIGGER SendReminderNotification
