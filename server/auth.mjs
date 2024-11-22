@@ -66,7 +66,7 @@ export const registerUser = async (req, res) => {
             return res.status(400).json({ message: "Invalid role" });
         }
 
-        const role_id = roleResult[0].role_id;
+        const role_id = roleResult[0].role_id || "user";
 
         // Add the new user to the database
         await db.query(
@@ -89,7 +89,7 @@ export const registerUser = async (req, res) => {
                     "",         // state_code
                     "",         // zip_code
                     "[]",       // skills as empty JSON array
-                    "",         // preferences
+                    "[]",         // preferences
                     "[]"        // availability as empty JSON array
                 ]
             );
