@@ -6,10 +6,21 @@ const VolunteerHistory = () => {
   const [sortOrder, setSortOrder] = useState("asc");
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to perform this action.");
+      return;
+    }
     // Fetch volunteer history data from the backend
     const fetchVolunteerHistory = async () => {
       try {
-        const response = await fetch("http://localhost:8080/volunteer-history");
+        const response = await fetch("http://localhost:8080/volunteer-history", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include token in the header
+          },
+        });
         if (!response.ok) {
           throw new Error(`Failed to fetch data: ${response.statusText}`);
         }

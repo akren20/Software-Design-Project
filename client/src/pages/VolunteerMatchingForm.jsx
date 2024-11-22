@@ -1,49 +1,89 @@
 import React, { useState, useEffect } from "react";
 
-// Mock data for volunteers and events; replace with actual API calls to fetch data
-const mockVolunteers = [
-  { id: 1, name: "John Doe", skills: ["Communication", "Leadership"] },
-  { id: 2, name: "Jane Smith", skills: ["Technical Writing", "Project Management"] },
-];
-
-const mockEvents = [
-  { id: 1, name: "Community Cleanup", requiredSkills: ["Leadership", "Teamwork"] },
-  { id: 2, name: "Tech Workshop", requiredSkills: ["Technical Writing", "Communication"] },
-];
-
 const VolunteerMatchingForm = () => {
   const [volunteers, setVolunteers] = useState([]);
-  const [events, setEvents] = useState([]);
+  const [matchedEvents, setMatchedEvents] = useState([]);
   const [selectedVolunteer, setSelectedVolunteer] = useState("");
-  const [matchedEvent, setMatchedEvent] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState("");
 
   useEffect(() => {
-    // Simulate fetching data from a database
-    setVolunteers(mockVolunteers);
-    setEvents(mockEvents);
+    const fetchVolunteers = async () => {
+      try {
+        const token = localStorage.getItem("token"); // Retrieve the token
+        if (!token) throw new Error("No token provided");
+
+        const response = await fetch("http://localhost:8080/profiles", {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include token in the request
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch volunteers");
+        }
+
+        const data = await response.json();
+        setVolunteers(data);
+      } catch (error) {
+        console.error("Error fetching volunteers:", error);
+      }
+    };
+
+    fetchVolunteers();
   }, []);
 
-  const handleVolunteerChange = (e) => {
-    const selectedVolunteerId = e.target.value;
-    setSelectedVolunteer(selectedVolunteerId);
-    // Automatically match event based on volunteer's skills
-    const volunteer = volunteers.find((vol) => vol.id.toString() === selectedVolunteerId);
-    if (volunteer) {
-      const matched = events.find((event) =>
-        event.requiredSkills.some((skill) => volunteer.skills.includes(skill))
-      );
-      setMatchedEvent(matched ? matched.id.toString() : "");
+  const fetchMatchesForVolunteer = async (email) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No token provided");
+
+      const matchesResponse = await fetch(`http://localhost:8080/api/matches/${email}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!matchesResponse.ok) {
+        throw new Error("Failed to fetch matches");
+      }
+
+      const matchedEvents = await matchesResponse.json();
+      setMatchedEvents(matchedEvents);
+    } catch (error) {
+      console.error("Error fetching matches:", error);
     }
   };
+  const handleVolunteerChange = (e) => {
+    const selectedEmail = e.target.value;
+    setSelectedVolunteer(selectedEmail);
 
-  const handleSubmit = (e) => {
+    // Fetch matched events for the selected volunteer
+    fetchMatchesForVolunteer(selectedEmail);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Replace with logic to save the matched volunteer-event data
-    console.log("Matched Volunteer to Event:", {
-      volunteerId: selectedVolunteer,
-      eventId: matchedEvent,
-    });
-    alert("Volunteer matched to event successfully!");
+
+    try {
+      const token = localStorage.getItem("token"); // Retrieve the token
+      if (!token) throw new Error("No token provided");
+
+      const response = await fetch("http://localhost:8080/api/match", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Include token in the request
+        },
+        body: JSON.stringify({ volunteerId: selectedVolunteer, eventId: selectedEvent }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save match");
+      }
+
+      alert("Volunteer matched to event successfully!");
+    } catch (error) {
+      console.error("Error submitting match:", error);
+      alert("Failed to match volunteer to event.");
+    }
   };
 
   return (
@@ -61,8 +101,8 @@ const VolunteerMatchingForm = () => {
           >
             <option value="">Select a volunteer</option>
             {volunteers.map((volunteer) => (
-              <option key={volunteer.id} value={volunteer.id}>
-                {volunteer.name}
+              <option key={volunteer.email} value={volunteer.email}>
+                {volunteer.full_name}
               </option>
             ))}
           </select>
@@ -71,15 +111,15 @@ const VolunteerMatchingForm = () => {
           <label className="block text-gray-700">Matched Event</label>
           <select
             name="event"
-            value={matchedEvent}
-            onChange={(e) => setMatchedEvent(e.target.value)}
+            value={selectedEvent}
+            onChange={(e) => setSelectedEvent(e.target.value)}
             required
             className="w-full p-2 border border-gray-300 rounded mt-1"
           >
-            <option value="">Select an event</option>
-            {events.map((event) => (
-              <option key={event.id} value={event.id}>
-                {event.name}
+            <option value="">Select a matched event</option>
+            {matchedEvents.map((event) => (
+              <option key={event.eventName} value={event.eventName}>
+                {event.eventName} (Score: {event.matchScore})
               </option>
             ))}
           </select>
