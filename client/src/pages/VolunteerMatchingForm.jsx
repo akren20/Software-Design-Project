@@ -12,7 +12,7 @@ const VolunteerMatchingForm = () => {
         const token = localStorage.getItem("token"); // Retrieve the token
         if (!token) throw new Error("No token provided");
 
-        const response = await fetch("http://localhost:8080/profiles", {
+        const response = await fetch("http://localhost:8080/api/profiles", {
           headers: {
             Authorization: `Bearer ${token}`, // Include token in the request
           },
