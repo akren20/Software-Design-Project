@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const ReportGenerator = ({ isAuthenticated, authToken }) => {
   const [reportData, setReportData] = useState({
@@ -96,7 +98,42 @@ const ReportGenerator = ({ isAuthenticated, authToken }) => {
   useEffect(() => {
     fetchReportData();
   }, [isAuthenticated, authToken]);
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const headers = [
+      'Event Name',
+      'Date',
+      'Location',
+      'Description',
+      'Urgency',
+      'Volunteers Registered',
+      'Volunteer Names',
+      'Volunteer Status',
+      'Required Skills',
+      'Status'
+    ];
+    const data = reportData.events.map(event => [
+      event.eventName,
+      event.date,
+      event.location,
+      event.description,
+      event.urgency,
+      event.volunteersRegistered,
+      event.volunteers.map(v => v.name).join(', '),
+      event.volunteers.map(v => `${v.name}:${v.status}`).join('; '),
+      event.skills,
+      event.status
+    ]);
 
+    doc.text('Event Reports', 14, 10);
+    doc.autoTable({
+      head: [headers],
+      body: data,
+      startY: 20
+    });
+
+    doc.save(`volunteer-events-${new Date().toISOString().split('T')[0]}.pdf`);
+  };
   if (reportData.loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -119,6 +156,7 @@ const ReportGenerator = ({ isAuthenticated, authToken }) => {
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">Event Reports</h2>
+          <div classname="flex gap-4">
           <button
             onClick={() => {
               const headers = [
@@ -164,11 +202,16 @@ const ReportGenerator = ({ isAuthenticated, authToken }) => {
             disabled={reportData.events.length === 0}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
             Export to CSV
           </button>
+          <button
+            onClick={exportToPDF}
+            disabled={reportData.events.length === 0}
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              Export to PDF
+            </button>
+            </div>
         </div>
       </div>
       <div className="p-6">
