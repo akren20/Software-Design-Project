@@ -207,7 +207,7 @@ const ReportGenerator = ({ isAuthenticated, authToken }) => {
           <button
             onClick={exportToPDF}
             disabled={reportData.events.length === 0}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+            className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 space-x-0.5 >"
             >
               Export to PDF
             </button>
